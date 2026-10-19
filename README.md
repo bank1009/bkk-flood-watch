@@ -130,3 +130,12 @@ npx localtunnel --port 5000
    ```bash
    npx vercel --token <YOUR_VERCEL_TOKEN> --prod --yes
    ```
+
+---
+
+## 👨‍💻 ผู้พัฒนาและลิขสิทธิ์ (Author & Copyright)
+
+- **ผู้พัฒนา (Creator):** Bank Chavalit Tirakitti
+- **GitHub:** [@bank1009](https://github.com/bank1009)
+- **ลิขสิทธิ์ (Copyright):** © 2026 Bank Chavalit Tirakitti. All Rights Reserved.
+

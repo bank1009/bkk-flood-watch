@@ -4,6 +4,9 @@ Evaluates flood risk levels across Bangkok districts based on
 Bangkok Metropolitan Administration (BMA) drainage capacity standards.
 """
 
+__author__ = "Bank Chavalit Tirakitti"
+__copyright__ = "Copyright (c) 2026 Bank Chavalit Tirakitti"
+
 from typing import List, Dict, Any, Optional
 from datetime import datetime
 

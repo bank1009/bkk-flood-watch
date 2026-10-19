@@ -3,6 +3,9 @@ BKK Flood Watch - Flask Application
 Serves RESTful APIs and UI for Bangkok Weather Forecast & BMA Drainage Flood Risk Evaluation.
 """
 
+__author__ = "Bank Chavalit Tirakitti"
+__copyright__ = "Copyright (c) 2026 Bank Chavalit Tirakitti"
+
 import os
 import logging
 from datetime import datetime, timezone, timedelta
