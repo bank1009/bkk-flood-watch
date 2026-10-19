@@ -1,0 +1,1815 @@
+<!DOCTYPE html>
+<html lang="th" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BKK Flood Watch | ระบบคาดการณ์และเฝ้าระวังน้ำท่วมขัง กทม.</title>
+  
+  <!-- Google Fonts: Prompt & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Prompt', 'Inter', 'sans-serif'],
+            mono: ['SFMono-Regular', 'Consolas', 'monospace']
+          },
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              500: '#3b82f6',
+              600: '#2563eb',
+              900: '#1e3a8a'
+            },
+            risk: {
+              green: '#10B981',
+              yellow: '#F59E0B',
+              orange: '#F97316',
+              red: '#EF4444'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  
+  <!-- Chart.js via CDN + annotation plugin -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
+
+  <!-- Leaflet.js via CDN (No API Key Required) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+  <!-- Google Maps JavaScript API (Supports Optional GOOGLE_MAPS_API_KEY with Keyless Dev Workaround) -->
+  <script src="https://maps.googleapis.com/maps/api/js?v=3.exp{% if google_maps_api_key %}&key={{ google_maps_api_key }}{% endif %}&callback=initGoogleMap" async defer></script>
+  
+  <style>
+    /* Google Maps Keyless Workaround: Automatically hide error container & dialog overlays */
+    .gm-err-container,
+    .gm-err-content,
+    .gm-err-title,
+    button.dismissButton {
+      display: none !important;
+      visibility: hidden !important;
+      pointer-events: none !important;
+      opacity: 0 !important;
+      height: 0 !important;
+      width: 0 !important;
+      z-index: -9999 !important;
+    }
+    /* Diminish the dark grayscale overlay applied to keyless development mode */
+    .gm-style > div:first-child > div:nth-child(2) {
+      opacity: 0.05 !important;
+      pointer-events: none !important;
+    }
+    /* Ensure Google Maps canvas and overlays remain fully interactive */
+    #bkk-google-map {
+      background-color: #090d16;
+    }
+    #bkk-google-map * {
+      pointer-events: auto;
+    }
+    .gm-style iframe + div,
+    .gm-style div[style*="z-index: 1000002"] {
+      pointer-events: none !important;
+    }
+    /* Google Maps InfoWindow Dark Styling */
+    .gm-style .gm-style-iw-c {
+      background-color: #0f172a !important;
+      color: #f8fafc !important;
+      border: 1px solid #334155 !important;
+      border-radius: 14px !important;
+      padding: 12px 14px !important;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.8), 0 8px 10px -6px rgba(0, 0, 0, 0.8) !important;
+    }
+    .gm-style .gm-style-iw-tc::after {
+      background: #0f172a !important;
+      border-top: 1px solid #334155 !important;
+    }
+    .gm-style .gm-style-iw-d {
+      overflow: hidden !important;
+      padding: 0 !important;
+    }
+    .gm-style .gm-ui-hover-effect {
+      color: #94a3b8 !important;
+    }
+    .gm-style .gm-ui-hover-effect:hover {
+      color: #ffffff !important;
+    }
+
+    /* Custom scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+    .pulse-glow-green {
+      box-shadow: 0 0 20px -3px rgba(16, 185, 129, 0.4);
+    }
+    .pulse-glow-yellow {
+      box-shadow: 0 0 20px -3px rgba(245, 158, 11, 0.4);
+    }
+    .pulse-glow-orange {
+      box-shadow: 0 0 25px -2px rgba(249, 115, 22, 0.5);
+    }
+    .pulse-glow-red {
+      box-shadow: 0 0 30px -1px rgba(239, 68, 68, 0.6);
+      animation: pulse-danger 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    @keyframes pulse-danger {
+      0%, 100% { opacity: 1; }
+      50% { opacity: .85; }
+    }
+
+    /* Leaflet Dark Matter Custom Styling */
+    .leaflet-popup-content-wrapper {
+      background-color: #0f172a !important;
+      color: #f8fafc !important;
+      border: 1px solid #334155 !important;
+      border-radius: 14px !important;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.7), 0 8px 10px -6px rgba(0, 0, 0, 0.7) !important;
+      padding: 0 !important;
+    }
+    .leaflet-popup-content {
+      margin: 12px 14px !important;
+      line-height: 1.4 !important;
+    }
+    .leaflet-popup-tip {
+      background-color: #0f172a !important;
+      border: 1px solid #334155 !important;
+    }
+    .leaflet-popup-close-button {
+      color: #94a3b8 !important;
+      padding: 6px 8px !important;
+    }
+    .leaflet-popup-close-button:hover {
+      color: #ffffff !important;
+    }
+    .leaflet-container {
+      font-family: 'Prompt', 'Inter', sans-serif !important;
+      background-color: #090d16 !important;
+    }
+
+    /* Map custom pulse animation */
+    @keyframes map-circle-pulse-red {
+      0% {
+        stroke-opacity: 0.95;
+        stroke-width: 2.5px;
+        fill-opacity: 0.6;
+      }
+      50% {
+        stroke-opacity: 0.3;
+        stroke-width: 6.5px;
+        fill-opacity: 0.3;
+      }
+      100% {
+        stroke-opacity: 0.95;
+        stroke-width: 2.5px;
+        fill-opacity: 0.6;
+      }
+    }
+    .pulse-circle-red {
+      animation: map-circle-pulse-red 2s infinite ease-in-out;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen font-sans antialiased selection:bg-blue-600 selection:text-white">
+
+  <!-- Top Navigation & Header -->
+  <header class="border-b border-slate-800/80 bg-slate-900/90 backdrop-blur sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-cyan-500 to-sky-400 flex items-center justify-center shadow-lg shadow-blue-500/30 text-white font-extrabold text-xl">
+          🌧️
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+              BKK Flood Watch
+              <span class="text-xs px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30 font-medium">BMA Standard</span>
+            </h1>
+          </div>
+          <p class="text-xs text-slate-400">ระบบคาดการณ์ปริมาณฝนและเฝ้าระวังน้ำท่วมขังตามเกณฑ์สำนักการระบายน้ำ กทม.</p>
+        </div>
+      </div>
+
+      <div class="flex items-center space-x-3 text-xs sm:text-sm">
+        <div id="live-indicator" class="flex items-center space-x-2 px-3 py-1.5 rounded-full bg-slate-800 border border-slate-700 text-slate-300">
+          <span class="relative flex h-2.5 w-2.5">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+          </span>
+          <span id="live-status-text">ข้อมูลสด Open-Meteo</span>
+        </div>
+        
+        <button onclick="toggleStandardsModal(true)" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 transition">
+          <span>ℹ️ เกณฑ์ กทม.</span>
+        </button>
+
+        <button onclick="fetchForecastData()" class="flex items-center space-x-1 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-medium transition shadow-sm" title="รีเฟรชข้อมูล">
+          <span id="refresh-icon">🔄</span>
+          <span class="hidden sm:inline">รีเฟรช</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Layout -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+    <!-- 1. SUMMARY ALERT BANNER (Next 6 Hours Peak Warning) -->
+    <div id="summary-alert-banner" class="rounded-2xl p-4 sm:p-5 border transition-all duration-300 bg-slate-900 border-slate-800">
+      <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div class="flex items-start space-x-3.5">
+          <div id="banner-icon-badge" class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0 bg-slate-800 border border-slate-700">
+            ⏳
+          </div>
+          <div>
+            <div class="flex items-center space-x-2 mb-1">
+              <span id="banner-tag" class="text-xs px-2.5 py-0.5 rounded-full font-semibold uppercase tracking-wider bg-slate-800 text-slate-300 border border-slate-700">
+                ประเมินความเสี่ยง 6 ชม. ข้างหน้า
+              </span>
+              <span id="banner-peak-time-tag" class="text-xs text-slate-400">
+                คาดการณ์ช่วงเวลา: กำลังโหลด...
+              </span>
+            </div>
+            <h2 id="banner-title" class="text-lg sm:text-xl font-bold text-white tracking-tight">
+              กำลังประมวลผลข้อมูลเรดาร์และพยากรณ์อากาศ...
+            </h2>
+            <p id="banner-action" class="text-sm text-slate-300 mt-1">
+              ระบบกำลังเชื่อมโยงข้อมูลกับเกณฑ์ขีดความสามารถการระบายน้ำ กทม.
+            </p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3 w-full md:w-auto justify-between md:justify-end border-t md:border-t-0 pt-3 md:pt-0 border-slate-800">
+          <div class="text-left md:text-right">
+            <div class="text-xs text-slate-400">ฝนสูงสุดใน 6 ชม.</div>
+            <div id="banner-peak-val" class="text-2xl font-black text-white">-- <span class="text-xs font-normal text-slate-400">มม./ชม.</span></div>
+          </div>
+          <div class="h-8 w-px bg-slate-800"></div>
+          <div class="text-left md:text-right">
+            <div class="text-xs text-slate-400">ศักยภาพท่อ กทม.</div>
+            <div class="text-2xl font-black text-rose-400">60 <span class="text-xs font-normal text-slate-400">มม./ชม.</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. SIMULATION CONTROLS & TEST BUTTONS -->
+    <section class="bg-slate-900/90 rounded-2xl p-4 sm:p-5 border border-slate-800 shadow-sm space-y-3">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <div class="flex items-center space-x-2">
+          <span class="text-lg">🧪</span>
+          <h3 class="text-base font-bold text-white">โหมดจำลองสถานการณ์ฝนตก (Simulation Mode)</h3>
+          <span class="text-xs px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/30">ทดสอบ Rule Engine</span>
+        </div>
+        <p class="text-xs text-slate-400">คลิกปุ่มเพื่อทดสอบการตอบสนองของระบบแจ้งเตือนตามเกณฑ์ กทม. ทุกระดับสี</p>
+      </div>
+
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 pt-1">
+        <!-- Live Real-Time Button -->
+        <button id="btn-mode-live" onclick="switchToLiveMode()" class="px-3 py-2.5 rounded-xl border font-medium text-xs sm:text-sm flex flex-col items-center justify-center gap-1 transition bg-blue-600 text-white border-blue-500 shadow-sm">
+          <span class="text-base">📡 ข้อมูลจริง</span>
+          <span class="text-[11px] text-blue-100">Live Forecast</span>
+        </button>
+
+        <!-- Normal Simulation -->
+        <button id="btn-sim-normal" onclick="runSimulation('normal')" class="px-3 py-2.5 rounded-xl border font-medium text-xs sm:text-sm flex flex-col items-center justify-center gap-1 transition bg-slate-800/80 hover:bg-slate-800 text-slate-200 border-slate-700">
+          <span class="text-base">🟢 สภาพปกติ</span>
+          <span class="text-[11px] text-emerald-400">ฝน &lt; 10 มม.</span>
+        </button>
+
+        <!-- Watch 22mm Simulation -->
+        <button id="btn-sim-watch" onclick="runSimulation('watch')" class="px-3 py-2.5 rounded-xl border font-medium text-xs sm:text-sm flex flex-col items-center justify-center gap-1 transition bg-slate-800/80 hover:bg-slate-800 text-slate-200 border-slate-700">
+          <span class="text-base">🟡 เฝ้าระวัง 22mm</span>
+          <span class="text-[11px] text-amber-400">ฝนรอระบาย 5-10 ซม.</span>
+        </button>
+
+        <!-- Heavy 45mm Simulation -->
+        <button id="btn-sim-heavy" onclick="runSimulation('heavy')" class="px-3 py-2.5 rounded-xl border font-medium text-xs sm:text-sm flex flex-col items-center justify-center gap-1 transition bg-slate-800/80 hover:bg-slate-800 text-slate-200 border-slate-700">
+          <span class="text-base">🟠 เตือนหนัก 45mm</span>
+          <span class="text-[11px] text-orange-400">ใกล้เต็มท่อ 60 มม.</span>
+        </button>
+
+        <!-- Extreme 75mm Simulation -->
+        <button id="btn-sim-extreme" onclick="runSimulation('extreme')" class="px-3 py-2.5 rounded-xl border font-medium text-xs sm:text-sm flex flex-col items-center justify-center gap-1 transition bg-slate-800/80 hover:bg-slate-800 text-slate-200 border-slate-700">
+          <span class="text-base">🔴 วิกฤต 75mm</span>
+          <span class="text-[11px] text-rose-400">เกินขีดความสามารถ</span>
+        </button>
+
+        <!-- Cumulative Red Simulation -->
+        <button id="btn-sim-cumulative_red" onclick="runSimulation('cumulative_red')" class="px-3 py-2.5 rounded-xl border font-medium text-xs sm:text-sm flex flex-col items-center justify-center gap-1 transition bg-slate-800/80 hover:bg-slate-800 text-slate-200 border-slate-700">
+          <span class="text-base">🌊 ฝนแช่ &gt; 80mm</span>
+          <span class="text-[11px] text-rose-400">สะสม 3 ชม. วิกฤต</span>
+        </button>
+      </div>
+
+      <div id="sim-status-banner" class="hidden text-xs px-3 py-2 rounded-lg bg-purple-950/40 border border-purple-500/30 text-purple-300 flex items-center justify-between">
+        <span id="sim-scenario-desc">⚠️ กำลังแสดงผลข้อมูลจำลองสถานการณ์</span>
+        <button onclick="switchToLiveMode()" class="underline font-semibold hover:text-white">กลับสู่ข้อมูลจริง</button>
+      </div>
+    </section>
+
+    <!-- 3. INTERACTIVE FLOOD RISK RADIUS MAP -->
+    <section class="bg-slate-900/90 rounded-2xl p-4 sm:p-5 border border-slate-800 shadow-sm space-y-3">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div>
+          <div class="flex items-center space-x-2">
+            <span class="text-lg">🗺️</span>
+            <h3 class="text-base font-bold text-white">แผนที่เรดาร์คาดการณ์รัศมีน้ำท่วมขัง (Interactive Flood Risk Radius Map)</h3>
+            <span id="map-provider-badge" class="text-xs px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/30 font-medium">Google Maps Dark</span>
+          </div>
+          <p class="text-xs text-slate-400 mt-0.5">
+            แสดงรัศมีผลกระทบคาดการณ์พร้อมกัน 6 โซนยุทธศาสตร์ กทม. บน Google Maps | วงกลม google.maps.Circle ขยายตาม BMA Alert Tier | คลิกวงกลมเพื่อเจาะลึก
+          </p>
+        </div>
+
+        <!-- Action controls & quick stats -->
+        <div class="flex flex-wrap items-center gap-2">
+          <!-- Provider switcher -->
+          <div class="flex items-center bg-slate-950 border border-slate-800 rounded-lg p-0.5 text-xs shadow-inner">
+            <button id="tab-google-map" onclick="setMapProvider('google')" class="px-2.5 py-1 rounded-md font-semibold transition bg-blue-600 text-white shadow-sm flex items-center gap-1.5">
+              <span>🌐</span> Google Maps
+            </button>
+            <button id="tab-leaflet-map" onclick="setMapProvider('leaflet')" class="px-2.5 py-1 rounded-md font-semibold transition text-slate-400 hover:text-white flex items-center gap-1.5">
+              <span>🗺️</span> Leaflet Dark
+            </button>
+          </div>
+
+          <div id="map-risk-summary-badges" class="flex items-center gap-1.5 text-xs">
+            <span id="badge-count-red" class="hidden px-2 py-0.5 rounded-full bg-red-500/20 text-red-400 border border-red-500/30 font-semibold">🔴 วิกฤต 0</span>
+            <span id="badge-count-orange" class="hidden px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400 border border-orange-500/30 font-semibold">🟠 เตือน 0</span>
+            <span id="badge-count-yellow" class="hidden px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30 font-semibold">🟡 เฝ้าระวัง 0</span>
+            <span id="badge-count-green" class="hidden px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-semibold">🟢 ปกติ 6</span>
+          </div>
+          <button onclick="resetMapView()" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 text-xs flex items-center gap-1 transition">
+            <span>🎯 มุมมองทั้ง กทม.</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Map Element Containers -->
+      <div class="relative w-full overflow-hidden rounded-xl border border-slate-800 bg-slate-950">
+        <div id="bkk-google-map" class="w-full h-[420px] sm:h-[480px]"></div>
+        <div id="bkk-flood-map" class="w-full h-[420px] sm:h-[480px] hidden"></div>
+      </div>
+
+      <!-- Dynamic Radius & Color Legend -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-slate-800/80 text-xs">
+        <div class="flex items-center space-x-2.5 p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+          <span class="w-3.5 h-3.5 rounded-full bg-emerald-500 flex-shrink-0"></span>
+          <div>
+            <div class="font-bold text-emerald-400">🟢 ปกติ (รัศมี 800 ม.)</div>
+            <div class="text-[11px] text-slate-400">ฝน &lt; 10 มม. ระบายคล่องตัว</div>
+          </div>
+        </div>
+        <div class="flex items-center space-x-2.5 p-2 rounded-xl bg-amber-500/10 border border-amber-500/20">
+          <span class="w-3.5 h-3.5 rounded-full bg-amber-500 flex-shrink-0"></span>
+          <div>
+            <div class="font-bold text-amber-400">🟡 เฝ้าระวัง (รัศมี 1.5 กม.)</div>
+            <div class="text-[11px] text-slate-400">ฝน 10 - 35 มม. น้ำขัง 5-10 ซม.</div>
+          </div>
+        </div>
+        <div class="flex items-center space-x-2.5 p-2 rounded-xl bg-orange-500/10 border border-orange-500/20">
+          <span class="w-3.5 h-3.5 rounded-full bg-orange-500 flex-shrink-0"></span>
+          <div>
+            <div class="font-bold text-orange-400">🟠 แจ้งเตือน (รัศมี 2.5 กม.)</div>
+            <div class="text-[11px] text-slate-400">ฝน 35.1 - 60 มม. ใกล้เต็มท่อ</div>
+          </div>
+        </div>
+        <div class="flex items-center space-x-2.5 p-2 rounded-xl bg-rose-500/10 border border-rose-500/20">
+          <span class="relative flex h-3.5 w-3.5 flex-shrink-0">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-rose-500"></span>
+          </span>
+          <div>
+            <div class="font-bold text-rose-400">🔴 วิกฤตฉับพลัน (รัศมี 3.5 กม.)</div>
+            <div class="text-[11px] text-slate-400">ฝน &gt; 60 มม. เกินศักยภาพ กทม.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. BANGKOK MONITORED LOCATIONS SELECTOR -->
+    <section class="space-y-3">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-2">
+          <span class="text-lg">📍</span>
+          <h3 class="text-base font-bold text-white">เลือกจุดเฝ้าระวังน้ำท่วมขังสำคัญ 6 โซน กทม.</h3>
+        </div>
+        <span class="text-xs text-slate-400">พิกัดทางยุทธศาสตร์การระบายน้ำ</span>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        {% for loc in locations %}
+        <div 
+          onclick="selectLocation('{{ loc.id }}')" 
+          id="loc-card-{{ loc.id }}"
+          class="location-card cursor-pointer p-4 rounded-xl border transition-all duration-200 bg-slate-900/70 hover:bg-slate-800/80 border-slate-800 relative overflow-hidden group">
+          <div class="flex items-start justify-between">
+            <div>
+              <div class="text-xs font-semibold text-blue-400 uppercase tracking-wider mb-0.5">โซนที่ {{ loop.index }}</div>
+              <h4 class="text-base font-bold text-white group-hover:text-blue-300 transition">{{ loc.name_th }}</h4>
+              <p class="text-xs text-slate-400 mt-0.5">{{ loc.name_en }}</p>
+            </div>
+            <span class="text-xs px-2 py-1 rounded bg-slate-800 text-slate-400 font-mono">
+              {{ loc.lat }}, {{ loc.lon }}
+            </span>
+          </div>
+          <div class="mt-2.5 pt-2.5 border-t border-slate-800/80 text-[11px] text-slate-400 line-clamp-2">
+            <span class="text-slate-300 font-medium">จุดเสี่ยง:</span> {{ loc.hotspots }}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <!-- 4. CURRENT WEATHER & METRIC CARDS -->
+    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      
+      <!-- Card 1: 24h Risk Level -->
+      <div class="bg-slate-900/80 p-5 rounded-2xl border border-slate-800 relative overflow-hidden">
+        <div class="flex items-center justify-between text-xs text-slate-400 mb-2">
+          <span>ระดับความเสี่ยงภาพรวม 24 ชม.</span>
+          <span id="metric-tier-badge" class="px-2 py-0.5 rounded-full text-xs font-bold bg-slate-800 text-slate-300">--</span>
+        </div>
+        <div class="flex items-baseline space-x-2">
+          <div id="metric-tier-title" class="text-2xl font-black text-white">กำลังคำนวณ...</div>
+        </div>
+        <div class="mt-3 text-xs text-slate-300 line-clamp-2" id="metric-tier-action">
+          --
+        </div>
+        <div class="mt-2 text-[11px] text-slate-400 flex justify-between">
+          <span>สัดส่วนความจุท่อ กทม.:</span>
+          <span id="metric-bma-pct" class="font-semibold text-slate-300">--</span>
+        </div>
+      </div>
+
+      <!-- Card 2: Peak Hourly Rain -->
+      <div class="bg-slate-900/80 p-5 rounded-2xl border border-slate-800 relative overflow-hidden">
+        <div class="flex items-center justify-between text-xs text-slate-400 mb-2">
+          <span>ฝนตกหนักสุดรายชั่วโมง (24h)</span>
+          <span class="text-[11px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400">เกณฑ์ 60 มม.</span>
+        </div>
+        <div class="flex items-baseline space-x-1.5">
+          <div id="metric-peak-hourly" class="text-3xl font-black text-white">--</div>
+          <span class="text-xs text-slate-400 font-medium">มม./ชม.</span>
+        </div>
+        <div class="mt-2 text-xs text-slate-300 flex items-center space-x-1">
+          <span>คาดตกหนักสุดเวลา:</span>
+          <span id="metric-peak-time" class="font-bold text-amber-400">--</span>
+        </div>
+        <div class="mt-2 w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
+          <div id="metric-peak-bar" class="bg-blue-500 h-1.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+        </div>
+      </div>
+
+      <!-- Card 3: Max 3-hr Cumulative -->
+      <div class="bg-slate-900/80 p-5 rounded-2xl border border-slate-800 relative overflow-hidden">
+        <div class="flex items-center justify-between text-xs text-slate-400 mb-2">
+          <span>ฝนสะสมสูงสุด 3 ชั่วโมง</span>
+          <span class="text-[11px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400">เกณฑ์ 80 มม.</span>
+        </div>
+        <div class="flex items-baseline space-x-1.5">
+          <div id="metric-max-3hr" class="text-3xl font-black text-white">--</div>
+          <span class="text-xs text-slate-400 font-medium">มม. / 3 ชม.</span>
+        </div>
+        <div class="mt-2 text-xs text-slate-300 flex items-center justify-between">
+          <span>รวมสะสมทั้งวัน:</span>
+          <span id="metric-total-rain" class="font-bold text-cyan-400">-- มม.</span>
+        </div>
+        <div class="mt-2 w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
+          <div id="metric-3hr-bar" class="bg-cyan-500 h-1.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+        </div>
+      </div>
+
+      <!-- Card 4: Current District Weather -->
+      <div class="bg-slate-900/80 p-5 rounded-2xl border border-slate-800 relative overflow-hidden">
+        <div class="flex items-center justify-between text-xs text-slate-400 mb-2">
+          <span>สภาพอากาศปัจจุบัน</span>
+          <span id="metric-observed-time" class="text-[11px] text-slate-400">--</span>
+        </div>
+        <div class="flex items-center space-x-3">
+          <span id="metric-weather-icon" class="text-4xl">🌤️</span>
+          <div>
+            <div id="metric-weather-temp" class="text-3xl font-black text-white">--°C</div>
+            <div id="metric-weather-desc" class="text-xs text-slate-300 font-medium">กำลังโหลด...</div>
+          </div>
+        </div>
+        <div class="mt-2.5 pt-2 border-t border-slate-800 text-xs text-slate-400 flex items-center justify-between">
+          <span>ความชื้น: <strong id="metric-weather-humidity" class="text-slate-200">--%</strong></span>
+          <span>โอกาสเกิดฝน: <strong id="metric-weather-prob" class="text-blue-400">--%</strong></span>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- 5. 24-HOUR RAINFALL CHART (Section 4) -->
+    <section class="bg-slate-900/90 rounded-2xl p-5 border border-slate-800 shadow-sm space-y-4">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div>
+          <div class="flex items-center space-x-2">
+            <span class="text-lg">📊</span>
+            <h3 class="text-base font-bold text-white">กราฟแนวโน้มปริมาณฝน 24 ชั่วโมงข้างหน้า (24-Hour Rainfall Trend)</h3>
+          </div>
+          <p class="text-xs text-slate-400 mt-0.5">
+            เปรียบเทียบปริมาณฝนรายชั่วโมง (มม./ชม.) กับขีดจำกัดความสามารถการระบายน้ำของ กทม. (เส้นประสีแดง 60 มม.)
+          </p>
+        </div>
+
+        <div class="flex items-center space-x-4 text-xs">
+          <div class="flex items-center space-x-1.5">
+            <span class="w-3 h-3 rounded-sm bg-blue-500 inline-block"></span>
+            <span class="text-slate-300">ฝนรายชั่วโมง (มม.)</span>
+          </div>
+          <div class="flex items-center space-x-1.5">
+            <span class="w-3 h-1 bg-cyan-400 inline-block"></span>
+            <span class="text-slate-300">สะสม 3 ชม. (มม.)</span>
+          </div>
+          <div class="flex items-center space-x-1.5">
+            <span class="w-3 h-0.5 border-t-2 border-dashed border-rose-500 inline-block"></span>
+            <span class="text-rose-400 font-semibold">ขีดจำกัด กทม. (60 มม.)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chart Container -->
+      <div class="relative w-full h-[320px] sm:h-[380px]">
+        <canvas id="rainfallChart"></canvas>
+      </div>
+
+      <!-- Legend & Color Tier Guide under Chart -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-slate-800 text-xs">
+        <div class="flex items-center space-x-2 p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+          <div>
+            <div class="font-bold text-emerald-400">เขียว: ปกติ</div>
+            <div class="text-[10px] text-slate-400">&lt; 10 มม./ชม.</div>
+          </div>
+        </div>
+        <div class="flex items-center space-x-2 p-2 rounded-lg bg-amber-500/10 border border-amber-500/20">
+          <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+          <div>
+            <div class="font-bold text-amber-400">เหลือง: เฝ้าระวัง</div>
+            <div class="text-[10px] text-slate-400">10 - 35 มม./ชม.</div>
+          </div>
+        </div>
+        <div class="flex items-center space-x-2 p-2 rounded-lg bg-orange-500/10 border border-orange-500/20">
+          <span class="w-2.5 h-2.5 rounded-full bg-orange-500"></span>
+          <div>
+            <div class="font-bold text-orange-400">ส้ม: เตือนน้ำท่วม</div>
+            <div class="text-[10px] text-slate-400">35.1 - 60 มม./ชม.</div>
+          </div>
+        </div>
+        <div class="flex items-center space-x-2 p-2 rounded-lg bg-rose-500/10 border border-rose-500/20">
+          <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
+          <div>
+            <div class="font-bold text-rose-400">แดง: วิกฤตฉับพลัน</div>
+            <div class="text-[10px] text-slate-400">&gt; 60 มม./ชม.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. HOURLY TIMELINE BREAKDOWN CARDS -->
+    <section class="space-y-3">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-2">
+          <span class="text-lg">⏱️</span>
+          <h3 class="text-base font-bold text-white">ตารางคาดการณ์รายชั่วโมง 24 ชั่วโมงข้างหน้า (Hourly Timeline)</h3>
+        </div>
+        <span class="text-xs text-slate-400">เลื่อนแนวนอนเพื่อดูเวลาถัดไป</span>
+      </div>
+
+      <div id="hourly-cards-scroll" class="flex gap-2.5 overflow-x-auto pb-3 pt-1">
+        <!-- Rendered dynamically via JavaScript -->
+        <div class="text-xs text-slate-400 py-6 text-center w-full">กำลังโหลดตารางข้อมูลรายชั่วโมง...</div>
+      </div>
+    </section>
+
+    <!-- 7. DISTRICT STRATEGIC DETAILS & HOTSPOTS -->
+    <section id="district-info-card" class="bg-slate-900/80 rounded-2xl p-5 border border-slate-800 space-y-3">
+      <div class="flex items-center space-x-2">
+        <span class="text-lg">ℹ️</span>
+        <h3 id="district-name-heading" class="text-base font-bold text-white">ข้อมูลจุดเสี่ยงและระบบระบายน้ำ</h3>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs sm:text-sm">
+        <div class="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800/80">
+          <span class="text-slate-400 block mb-1">🚨 จุดเสี่ยงน้ำท่วมขังหลักในพื้นที่:</span>
+          <span id="district-hotspots-text" class="text-slate-200 font-medium">--</span>
+        </div>
+        <div class="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800/80">
+          <span class="text-slate-400 block mb-1">🌊 ลุ่มน้ำและโครงสร้างพื้นฐานการระบายน้ำ:</span>
+          <span id="district-basin-text" class="text-slate-200 font-medium">--</span>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-slate-800/80 bg-slate-950 py-6 mt-12 text-center text-xs text-slate-500">
+    <div class="max-w-7xl mx-auto px-4 space-y-2">
+      <p>ระบบ <strong>BKK Flood Watch</strong> ออกแบบตามหลักเกณฑ์การระบายน้ำของ <strong>สำนักการระบายน้ำ กรุงเทพมหานคร (BMA Drainage Standards)</strong></p>
+      <p class="text-[11px] text-slate-600">ข้อมูลสภาพอากาศพยากรณ์ล่วงหน้า 24 ชม. จาก Open-Meteo API (High Resolution Global Models) โดยไม่ใช้อภิมหาคีย์ API</p>
+    </div>
+  </footer>
+
+  <!-- BMA Standards Modal -->
+  <div id="standards-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm hidden">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-2xl w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto shadow-2xl">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div class="flex items-center space-x-2">
+          <span class="text-xl">📐</span>
+          <h3 class="text-lg font-bold text-white">เกณฑ์ประเมินความเสี่ยงน้ำท่วม สำนักการระบายน้ำ กทม.</h3>
+        </div>
+        <button onclick="toggleStandardsModal(false)" class="text-slate-400 hover:text-white text-xl">✕</button>
+      </div>
+
+      <p class="text-xs text-slate-300 leading-relaxed">
+        ระบบท่อระบายน้ำหลักของกรุงเทพมหานครถูกออกแบบตามเกณฑ์มาตรฐานให้รองรับปริมาณน้ำฝนได้ไม่เกิน <strong>60 มิลลิเมตรต่อชั่วโมง (60 mm/hr)</strong> 
+        หากฝนตกเกินกว่าเกณฑ์ดังกล่าว น้ำฝนจะไม่สามารถไหลลงท่อได้ทันและเกิดน้ำรอระบายหรือน้ำท่วมขังฉับพลัน
+      </p>
+
+      <div class="space-y-3 text-xs">
+        <!-- Green -->
+        <div class="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30">
+          <div class="flex items-center justify-between font-bold text-emerald-400 mb-1">
+            <span>🟢 สีเขียว: ปกติ (Normal)</span>
+            <span>&lt; 10 มม./ชม. และ สะสม 3 ชม. &lt; 25 มม.</span>
+          </div>
+          <p class="text-slate-300">การระบายน้ำปกติ สัญจรได้ตามปกติ สภาพผิวจราจรแห้งหรือมีน้ำขังเพียงเล็กน้อยตามแอ่งธรรมชาติ</p>
+        </div>
+
+        <!-- Yellow -->
+        <div class="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30">
+          <div class="flex items-center justify-between font-bold text-amber-400 mb-1">
+            <span>🟡 สีเหลือง: เฝ้าระวังน้ำรอการระบาย (Watch)</span>
+            <span>10.0 - 35.0 มม./ชม. หรือ สะสม 3 ชม. 25.0 - 50.0 มม.</span>
+          </div>
+          <p class="text-slate-300">ฝนปานกลางถึงหนัก อาจมีน้ำขังผิวจราจร 5-10 ซม. ในจุดลุ่มต่ำ ชะลอความเร็วและระวังการลื่นไถล</p>
+        </div>
+
+        <!-- Orange -->
+        <div class="p-3 rounded-xl bg-orange-500/10 border border-orange-500/30">
+          <div class="flex items-center justify-between font-bold text-orange-400 mb-1">
+            <span>🟠 สีส้ม: แจ้งเตือนน้ำท่วมขัง (Warning)</span>
+            <span>35.1 - 60.0 มม./ชม. หรือ สะสม 3 ชม. 50.1 - 80.0 มม.</span>
+          </div>
+          <p class="text-slate-300">ฝนตกหนักใกล้เต็มศักยภาพท่อระบายน้ำ กทม. (60 มม.) รถเล็กควรหลีกเลี่ยงซอยต่ำและอุโมงค์ทางลอด</p>
+        </div>
+
+        <!-- Red -->
+        <div class="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30">
+          <div class="flex items-center justify-between font-bold text-rose-400 mb-1">
+            <span>🔴 สีแดง: วิกฤตน้ำท่วมฉับพลัน (Critical)</span>
+            <span>&gt; 60.0 มม./ชม. หรือ สะสม 3 ชม. &gt; 80.0 มม.</span>
+          </div>
+          <p class="text-slate-300">วิกฤต! ปริมาณฝนเกินขีดความสามารถในการระบายน้ำของ กทม. เสี่ยงน้ำท่วมสูงเกิน 25 ซม. งดใช้เส้นทางจุดเสี่ยง</p>
+        </div>
+      </div>
+
+      <div class="pt-3 border-t border-slate-800 flex justify-end">
+        <button onclick="toggleStandardsModal(false)" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs">
+          เข้าใจแล้ว
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Application Logic Scripts -->
+  <script>
+    // Application State
+    let currentMode = 'live'; // 'live' or 'simulation'
+    let currentScenario = null;
+    let selectedLocationId = 'chatuchak';
+    let chartInstance = null;
+    let cachedData = null;
+
+    // Initialize Chart.js
+    function initChart() {
+      const ctx = document.getElementById('rainfallChart').getContext('2d');
+      chartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: [],
+          datasets: [
+            {
+              type: 'bar',
+              label: 'ฝนรายชั่วโมง (มม./ชม.)',
+              data: [],
+              backgroundColor: [],
+              borderRadius: 6,
+              borderWidth: 1,
+              borderColor: 'transparent',
+              order: 2,
+              yAxisID: 'y'
+            },
+            {
+              type: 'line',
+              label: 'สะสม 3 ชั่วโมง (มม.)',
+              data: [],
+              borderColor: '#06b6d4',
+              backgroundColor: 'rgba(6, 182, 212, 0.1)',
+              borderWidth: 2.5,
+              pointBackgroundColor: '#06b6d4',
+              pointRadius: 3,
+              pointHoverRadius: 6,
+              fill: true,
+              tension: 0.35,
+              order: 1,
+              yAxisID: 'y'
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: {
+            mode: 'index',
+            intersect: false
+          },
+          plugins: {
+            legend: {
+              display: false // Using custom legends above chart
+            },
+            tooltip: {
+              backgroundColor: 'rgba(15, 23, 42, 0.95)',
+              titleColor: '#f8fafc',
+              bodyColor: '#cbd5e1',
+              borderColor: '#334155',
+              borderWidth: 1,
+              padding: 12,
+              cornerRadius: 10,
+              callbacks: {
+                title: function(items) {
+                  return '⏰ เวลา ' + items[0].label;
+                },
+                label: function(item) {
+                  if (item.datasetIndex === 0) {
+                    const val = item.raw;
+                    let riskText = 'ปกติ';
+                    if (val > 60) riskText = 'วิกฤตสีแดง (>60มม.)';
+                    else if (val > 35) riskText = 'แจ้งเตือนสีส้ม';
+                    else if (val >= 10) riskText = 'เฝ้าระวังสีเหลือง';
+                    return `🌧️ ปริมาณฝน: ${val.toFixed(1)} มม. (${riskText})`;
+                  } else {
+                    return `🌊 สะสม 3 ชม.: ${item.raw.toFixed(1)} มม.`;
+                  }
+                }
+              }
+            },
+            annotation: {
+              annotations: {
+                bmaLimitLine: {
+                  type: 'line',
+                  yMin: 60,
+                  yMax: 60,
+                  borderColor: '#ef4444',
+                  borderWidth: 2,
+                  borderDash: [6, 4],
+                  label: {
+                    display: true,
+                    content: 'เกณฑ์ความจุท่อระบายน้ำ กทม. (60 มม./ชม.)',
+                    position: 'end',
+                    backgroundColor: 'rgba(239, 68, 68, 0.85)',
+                    color: '#fff',
+                    font: {
+                      size: 11,
+                      weight: 'bold',
+                      family: 'Prompt'
+                    },
+                    padding: { x: 6, y: 3 }
+                  }
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: {
+                color: 'rgba(51, 65, 85, 0.3)',
+                drawBorder: false
+              },
+              ticks: {
+                color: '#94a3b8',
+                font: {
+                  family: 'Prompt',
+                  size: 11
+                },
+                maxRotation: 0,
+                autoSkip: true,
+                maxTicksLimit: 12
+              }
+            },
+            y: {
+              beginAtZero: true,
+              suggestedMax: 70,
+              grid: {
+                color: 'rgba(51, 65, 85, 0.3)',
+                drawBorder: false
+              },
+              ticks: {
+                color: '#94a3b8',
+                font: {
+                  family: 'Prompt',
+                  size: 11
+                },
+                callback: function(val) {
+                  return val + ' มม.';
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // Fetch and render data
+    async function fetchForecastData() {
+      const refreshIcon = document.getElementById('refresh-icon');
+      if (refreshIcon) refreshIcon.classList.add('animate-spin');
+
+      try {
+        let url = `/api/forecast?location_id=${selectedLocationId}`;
+        if (currentMode === 'simulation' && currentScenario) {
+          url = `/api/simulate?scenario=${currentScenario}&location_id=${selectedLocationId}`;
+        }
+
+        const res = await fetch(url);
+        const data = await res.json();
+        if (data.success) {
+          cachedData = data;
+          renderDashboard(data);
+        } else {
+          console.error("API error:", data);
+        }
+      } catch (err) {
+        console.error("Fetch error:", err);
+      } finally {
+        if (refreshIcon) refreshIcon.classList.remove('animate-spin');
+      }
+    }
+
+    // Render Dashboard
+    function renderDashboard(data) {
+      updateActiveLocationCard(selectedLocationId);
+      renderSummaryAlertBanner(data.analysis, data.is_simulation);
+      renderMetricCards(data);
+      renderChart(data);
+      renderHourlyTimeline(data);
+      renderDistrictInfo(data.location);
+    }
+
+    // 1. Render Summary Alert Banner
+    function renderSummaryAlertBanner(analysis, isSimulation) {
+      const banner = document.getElementById('summary-alert-banner');
+      const iconBadge = document.getElementById('banner-icon-badge');
+      const tag = document.getElementById('banner-tag');
+      const peakTimeTag = document.getElementById('banner-peak-time-tag');
+      const title = document.getElementById('banner-title');
+      const action = document.getElementById('banner-action');
+      const peakVal = document.getElementById('banner-peak-val');
+
+      const risk6h = analysis.next_6h_risk;
+      const code = risk6h.code;
+
+      // Reset glows
+      banner.classList.remove('pulse-glow-green', 'pulse-glow-yellow', 'pulse-glow-orange', 'pulse-glow-red');
+      
+      let badgeBg = 'bg-slate-800';
+      let icon = '🟢';
+
+      if (code === 'RED') {
+        banner.className = 'rounded-2xl p-4 sm:p-5 border transition-all duration-300 bg-red-950/40 border-red-500/60 pulse-glow-red';
+        badgeBg = 'bg-red-500 text-white';
+        icon = '🚨';
+        tag.className = 'text-xs px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider bg-red-500/30 text-red-300 border border-red-500/50';
+      } else if (code === 'ORANGE') {
+        banner.className = 'rounded-2xl p-4 sm:p-5 border transition-all duration-300 bg-orange-950/40 border-orange-500/60 pulse-glow-orange';
+        badgeBg = 'bg-orange-500 text-white';
+        icon = '⚠️';
+        tag.className = 'text-xs px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider bg-orange-500/30 text-orange-300 border border-orange-500/50';
+      } else if (code === 'YELLOW') {
+        banner.className = 'rounded-2xl p-4 sm:p-5 border transition-all duration-300 bg-amber-950/30 border-amber-500/50 pulse-glow-yellow';
+        badgeBg = 'bg-amber-500 text-slate-900';
+        icon = '🟡';
+        tag.className = 'text-xs px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider bg-amber-500/30 text-amber-300 border border-amber-500/50';
+      } else {
+        banner.className = 'rounded-2xl p-4 sm:p-5 border transition-all duration-300 bg-emerald-950/20 border-emerald-500/40 pulse-glow-green';
+        badgeBg = 'bg-emerald-500 text-white';
+        icon = '🟢';
+        tag.className = 'text-xs px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider bg-emerald-500/30 text-emerald-300 border border-emerald-500/50';
+      }
+
+      iconBadge.innerHTML = icon;
+      iconBadge.className = `w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0 ${badgeBg} shadow-lg`;
+
+      tag.textContent = `${risk6h.status_name} ใน 6 ชม. ข้างหน้า`;
+      peakTimeTag.textContent = `เวลาคาดการณ์พีค: ${analysis.peak_6h_time_formatted || '-'}`;
+      title.textContent = analysis.banner_message;
+      action.textContent = `คำแนะนำ: ${risk6h.action_th}`;
+      peakVal.innerHTML = `${analysis.peak_6h_hourly.toFixed(1)} <span class="text-xs font-normal text-slate-400">มม./ชม.</span>`;
+    }
+
+    // 2. Render Metric Cards
+    function renderMetricCards(data) {
+      const overall = data.analysis.overall_risk;
+      
+      // Metric 1: Overall Tier
+      const tierBadge = document.getElementById('metric-tier-badge');
+      const tierTitle = document.getElementById('metric-tier-title');
+      const tierAction = document.getElementById('metric-tier-action');
+      const bmaPct = document.getElementById('metric-bma-pct');
+
+      tierBadge.className = `px-2 py-0.5 rounded-full text-xs font-bold border ${overall.badge_class}`;
+      tierBadge.textContent = overall.code;
+      tierTitle.textContent = overall.title_th;
+      tierTitle.style.color = overall.color;
+      tierAction.textContent = overall.action_th;
+      bmaPct.textContent = overall.bma_limit_pct;
+
+      // Metric 2: Peak Hourly
+      const peakHourlyEl = document.getElementById('metric-peak-hourly');
+      const peakTimeEl = document.getElementById('metric-peak-time');
+      const peakBar = document.getElementById('metric-peak-bar');
+      
+      const peakVal = data.analysis.peak_hourly;
+      peakHourlyEl.textContent = peakVal.toFixed(1);
+      peakTimeEl.textContent = data.analysis.peak_time_formatted;
+      
+      const pctOfLimit = Math.min(100, Math.round((peakVal / 60.0) * 100));
+      peakBar.style.width = pctOfLimit + '%';
+      if (peakVal > 60) peakBar.className = 'bg-rose-500 h-1.5 rounded-full transition-all duration-500';
+      else if (peakVal > 35) peakBar.className = 'bg-orange-500 h-1.5 rounded-full transition-all duration-500';
+      else if (peakVal >= 10) peakBar.className = 'bg-amber-500 h-1.5 rounded-full transition-all duration-500';
+      else peakBar.className = 'bg-emerald-500 h-1.5 rounded-full transition-all duration-500';
+
+      // Metric 3: Max 3-hr Cumulative
+      const max3hrEl = document.getElementById('metric-max-3hr');
+      const totalRainEl = document.getElementById('metric-total-rain');
+      const bar3hr = document.getElementById('metric-3hr-bar');
+
+      const max3hr = data.analysis.max_3hr_cumulative;
+      max3hrEl.textContent = max3hr.toFixed(1);
+      totalRainEl.textContent = data.analysis.total_rain_24h.toFixed(1) + ' มม.';
+      
+      const pct3hr = Math.min(100, Math.round((max3hr / 80.0) * 100));
+      bar3hr.style.width = pct3hr + '%';
+      if (max3hr > 80) bar3hr.className = 'bg-rose-500 h-1.5 rounded-full transition-all duration-500';
+      else if (max3hr > 50) bar3hr.className = 'bg-orange-500 h-1.5 rounded-full transition-all duration-500';
+      else bar3hr.className = 'bg-cyan-500 h-1.5 rounded-full transition-all duration-500';
+
+      // Metric 4: Current Weather
+      const curr = data.current;
+      document.getElementById('metric-weather-icon').textContent = curr.weather_icon;
+      document.getElementById('metric-weather-temp').textContent = curr.temperature.toFixed(1) + '°C';
+      document.getElementById('metric-weather-desc').textContent = curr.weather_desc_th;
+      document.getElementById('metric-weather-humidity').textContent = curr.humidity + '%';
+      document.getElementById('metric-weather-prob').textContent = curr.precipitation_probability + '%';
+      document.getElementById('metric-observed-time').textContent = 'เวลา ' + curr.observed_at_formatted;
+    }
+
+    // 3. Render Chart
+    function renderChart(data) {
+      if (!chartInstance) return;
+
+      const series = data.forecast_series;
+      const breakdown = data.analysis.hourly_breakdown;
+
+      const labels = series.times_formatted;
+      const precipData = series.precipitation;
+      const cum3hrData = data.analysis.rolling_3hr;
+
+      // Color code each bar based on BMA threshold tier
+      const barColors = breakdown.map(item => {
+        const val = item.precipitation;
+        if (val > 60) return '#EF4444'; // Red
+        if (val > 35) return '#F97316'; // Orange
+        if (val >= 10) return '#F59E0B'; // Yellow
+        return '#3b82f6'; // Clean blue for normal
+      });
+
+      chartInstance.data.labels = labels;
+      chartInstance.data.datasets[0].data = precipData;
+      chartInstance.data.datasets[0].backgroundColor = barColors;
+      chartInstance.data.datasets[1].data = cum3hrData;
+
+      const maxVal = Math.max(...precipData, ...cum3hrData, 65);
+      chartInstance.options.scales.y.suggestedMax = Math.ceil(maxVal / 10) * 10;
+
+      chartInstance.update();
+    }
+
+    // 4. Render Hourly Timeline Horizontal Cards
+    function renderHourlyTimeline(data) {
+      const container = document.getElementById('hourly-cards-scroll');
+      const breakdown = data.analysis.hourly_breakdown;
+      const series = data.forecast_series;
+
+      container.innerHTML = breakdown.map((item, idx) => {
+        const time = series.times_formatted[idx];
+        const rain = item.precipitation;
+        const cum3 = item.cumulative_3hr;
+        const prob = series.precipitation_probability[idx] || 0;
+        const code = item.risk_code;
+        const color = item.risk_color;
+
+        let badgeBg = 'bg-slate-800 text-slate-300';
+        if (code === 'RED') badgeBg = 'bg-red-500/20 text-red-400 border border-red-500/40';
+        else if (code === 'ORANGE') badgeBg = 'bg-orange-500/20 text-orange-400 border border-orange-500/40';
+        else if (code === 'YELLOW') badgeBg = 'bg-amber-500/20 text-amber-400 border border-amber-500/40';
+        else badgeBg = 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40';
+
+        return `
+          <div class="flex-shrink-0 w-28 p-3 rounded-xl bg-slate-900/90 border border-slate-800 text-center flex flex-col justify-between hover:border-slate-700 transition">
+            <div class="text-xs font-semibold text-slate-300">${time}</div>
+            <div class="my-2">
+              <div class="text-lg font-black text-white" style="color: ${rain > 0 ? color : '#f8fafc'}">
+                ${rain.toFixed(1)}
+              </div>
+              <div class="text-[10px] text-slate-400">มม./ชม.</div>
+            </div>
+            <div class="text-[10px] py-0.5 rounded ${badgeBg} font-medium truncate">
+              ${item.title_th}
+            </div>
+            <div class="mt-2 text-[10px] text-slate-400 flex justify-between border-t border-slate-800/80 pt-1">
+              <span>สะสม 3h</span>
+              <span class="text-cyan-400 font-semibold">${cum3.toFixed(1)}</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // 5. Render District Strategic Details
+    function renderDistrictInfo(loc) {
+      document.getElementById('district-name-heading').textContent = `ข้อมูลจุดเสี่ยงและระบบระบายน้ำ: ${loc.name_th} (${loc.name_en})`;
+      document.getElementById('district-hotspots-text').textContent = loc.hotspots;
+      document.getElementById('district-basin-text').textContent = loc.drainage_basin;
+    }
+
+    // Map Global References
+    let currentMapProvider = 'google';
+    let map = null;
+    let zoneCircles = {};
+    let zoneMarkers = {};
+    let allZonesData = [];
+
+    // Google Maps References
+    let gmap = null;
+    let gmapCircles = {};
+    let gmapMarkers = {};
+    let gmapInfoWindow = null;
+
+    // Dark Mode Map Style Array for Google Maps
+    const darkMapStyles = [
+      { elementType: "geometry", stylers: [{ color: "#171c26" }] },
+      { elementType: "labels.text.stroke", stylers: [{ color: "#171c26" }] },
+      { elementType: "labels.text.fill", stylers: [{ color: "#94a3b8" }] },
+      {
+        featureType: "administrative.locality",
+        elementType: "labels.text.fill",
+        stylers: [{ color: "#cbd5e1" }]
+      },
+      {
+        featureType: "poi",
+        elementType: "labels.text.fill",
+        stylers: [{ color: "#64748b" }]
+      },
+      {
+        featureType: "poi.park",
+        elementType: "geometry",
+        stylers: [{ color: "#1e293b" }]
+      },
+      {
+        featureType: "road",
+        elementType: "geometry",
+        stylers: [{ color: "#253147" }]
+      },
+      {
+        featureType: "road",
+        elementType: "geometry.stroke",
+        stylers: [{ color: "#1a2233" }]
+      },
+      {
+        featureType: "road",
+        elementType: "labels.text.fill",
+        stylers: [{ color: "#94a3b8" }]
+      },
+      {
+        featureType: "road.highway",
+        elementType: "geometry",
+        stylers: [{ color: "#334155" }]
+      },
+      {
+        featureType: "road.highway",
+        elementType: "geometry.stroke",
+        stylers: [{ color: "#1e293b" }]
+      },
+      {
+        featureType: "transit",
+        elementType: "geometry",
+        stylers: [{ color: "#1e293b" }]
+      },
+      {
+        featureType: "transit.station",
+        elementType: "labels.text.fill",
+        stylers: [{ color: "#60a5fa" }]
+      },
+      {
+        featureType: "water",
+        elementType: "geometry",
+        stylers: [{ color: "#091427" }]
+      },
+      {
+        featureType: "water",
+        elementType: "labels.text.fill",
+        stylers: [{ color: "#38bdf8" }]
+      }
+    ];
+
+    // Google Maps Flood Radius Configuration
+    const GOOGLE_RADIUS_CONFIG = {
+      GREEN: {
+        strokeColor: '#22c55e',
+        strokeOpacity: 0.85,
+        strokeWeight: 2,
+        fillColor: '#22c55e',
+        fillOpacity: 0.25,
+        radius: 800
+      },
+      YELLOW: {
+        strokeColor: '#eab308',
+        strokeOpacity: 0.85,
+        strokeWeight: 2,
+        fillColor: '#eab308',
+        fillOpacity: 0.35,
+        radius: 1500
+      },
+      ORANGE: {
+        strokeColor: '#f97316',
+        strokeOpacity: 0.9,
+        strokeWeight: 2.5,
+        fillColor: '#f97316',
+        fillOpacity: 0.45,
+        radius: 2500
+      },
+      RED: {
+        strokeColor: '#ef4444',
+        strokeOpacity: 1.0,
+        strokeWeight: 3,
+        fillColor: '#ef4444',
+        fillOpacity: 0.60,
+        radius: 3500
+      }
+    };
+
+    // Google Maps Keyless Workaround: Automatically hide error container & dismiss modal
+    function setupGoogleMapsWorkaround() {
+      const dismissModal = () => {
+        // 1. Hide or remove .gm-err-container and gm-err-content
+        document.querySelectorAll('.gm-err-container, .gm-err-content').forEach(el => {
+          el.style.display = 'none';
+          el.style.visibility = 'hidden';
+          el.style.pointerEvents = 'none';
+          if (el.parentNode) {
+            try { el.remove(); } catch (e) {}
+          }
+        });
+        // 2. Click dismissButton if inside gm-err
+        document.querySelectorAll('.gm-err-container button, button.dismissButton').forEach(btn => {
+          try { btn.click(); } catch (e) {}
+        });
+        // 3. Ensure the map wrapper and canvas remain fully interactive
+        const gmapDiv = document.getElementById('bkk-google-map');
+        if (gmapDiv) {
+          gmapDiv.style.pointerEvents = 'auto';
+        }
+      };
+
+      dismissModal();
+      setInterval(dismissModal, 300);
+
+      if (window.MutationObserver) {
+        const observer = new MutationObserver(() => {
+          dismissModal();
+        });
+        observer.observe(document.body, { childList: true, subtree: true });
+      }
+    }
+
+    // Initialize Google Map (Center on Bangkok: 13.7563, 100.5018)
+    function initGMap() {
+      const mapEl = document.getElementById('bkk-google-map');
+      if (!mapEl || !window.google || !window.google.maps) return;
+      if (gmap) return;
+
+      setupGoogleMapsWorkaround();
+
+      gmap = new google.maps.Map(mapEl, {
+        center: { lat: 13.7563, lng: 100.5018 },
+        zoom: 11,
+        styles: darkMapStyles,
+        disableDefaultUI: false,
+        zoomControl: true,
+        mapTypeControl: false,
+        scaleControl: true,
+        streetViewControl: false,
+        rotateControl: false,
+        fullscreenControl: true,
+        backgroundColor: '#090d16'
+      });
+
+      gmapInfoWindow = new google.maps.InfoWindow({
+        minWidth: 260,
+        maxWidth: 320
+      });
+
+      // Close InfoWindow when clicking outside
+      gmap.addListener('click', () => {
+        if (gmapInfoWindow) gmapInfoWindow.close();
+      });
+
+      if (allZonesData && allZonesData.length > 0) {
+        renderGoogleMapZones(allZonesData);
+      }
+    }
+
+    // Google Maps API callback hook
+    window.initGoogleMap = function() {
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initGMap);
+      } else {
+        initGMap();
+      }
+    };
+    window.initMap = window.initGoogleMap;
+
+    // Initialize Leaflet Map with CartoDB Dark Matter tile layer (Alternative Provider)
+    function initLeafletMap() {
+      if (map) return;
+      const el = document.getElementById('bkk-flood-map');
+      if (!el) return;
+
+      map = L.map('bkk-flood-map', {
+        center: [13.7563, 100.5018],
+        zoom: 11,
+        zoomControl: true,
+        scrollWheelZoom: false
+      });
+
+      map.on('focus', () => { map.scrollWheelZoom.enable(); });
+
+      const cartoDark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+        subdomains: 'abcd',
+        maxZoom: 19
+      });
+
+      const esriDark = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles &copy; Esri &mdash; DeLorme, NAVTEQ',
+        maxZoom: 16
+      });
+
+      cartoDark.addTo(map);
+
+      const baseLayers = {
+        "CartoDB Dark Matter": cartoDark,
+        "Esri Dark Canvas": esriDark
+      };
+      L.control.layers(baseLayers, null, { position: 'topright' }).addTo(map);
+
+      setTimeout(() => { map.invalidateSize(); }, 350);
+    }
+
+    // Switch between Google Maps and Leaflet Dark
+    function setMapProvider(provider) {
+      currentMapProvider = provider;
+      const gmapDiv = document.getElementById('bkk-google-map');
+      const leafletDiv = document.getElementById('bkk-flood-map');
+      const btnGmap = document.getElementById('tab-google-map');
+      const btnLeaflet = document.getElementById('tab-leaflet-map');
+      const badge = document.getElementById('map-provider-badge');
+
+      if (provider === 'google') {
+        gmapDiv.classList.remove('hidden');
+        leafletDiv.classList.add('hidden');
+        btnGmap.className = 'px-2.5 py-1 rounded-md font-semibold transition bg-blue-600 text-white shadow-sm flex items-center gap-1.5';
+        btnLeaflet.className = 'px-2.5 py-1 rounded-md font-semibold transition text-slate-400 hover:text-white flex items-center gap-1.5';
+        if (badge) {
+          badge.textContent = 'Google Maps Dark';
+          badge.className = 'text-xs px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/30 font-medium';
+        }
+        if (window.google && window.google.maps && gmap) {
+          google.maps.event.trigger(gmap, 'resize');
+        } else {
+          initGMap();
+        }
+      } else {
+        gmapDiv.classList.add('hidden');
+        leafletDiv.classList.remove('hidden');
+        btnGmap.className = 'px-2.5 py-1 rounded-md font-semibold transition text-slate-400 hover:text-white flex items-center gap-1.5';
+        btnLeaflet.className = 'px-2.5 py-1 rounded-md font-semibold transition bg-blue-600 text-white shadow-sm flex items-center gap-1.5';
+        if (badge) {
+          badge.textContent = 'CartoDB Dark Matter';
+          badge.className = 'text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-medium';
+        }
+        if (!map) {
+          initLeafletMap();
+          if (allZonesData.length > 0) renderMapZones(allZonesData);
+        } else {
+          map.invalidateSize();
+        }
+      }
+    }
+
+    function resetMapView() {
+      if (currentMapProvider === 'google' && gmap) {
+        gmap.panTo({ lat: 13.7563, lng: 100.5018 });
+        gmap.setZoom(11);
+      }
+      if (map) {
+        map.flyTo([13.7563, 100.5018], 11, { animate: true, duration: 1 });
+      }
+    }
+
+    // Fetch and render all 6 zones on the map
+    async function fetchAndRenderMapZones(scenarioId = null) {
+      try {
+        const url = `/api/all-zones-status${scenarioId ? '?scenario=' + scenarioId : ''}`;
+        const res = await fetch(url);
+        const data = await res.json();
+        if (!data.success) return;
+
+        allZonesData = data.zones;
+        renderGoogleMapZones(data.zones);
+        renderMapZones(data.zones);
+        updateMapSummaryBadges(data.summary);
+      } catch (err) {
+        console.error("Map fetch error:", err);
+      }
+    }
+
+    function updateMapSummaryBadges(summary) {
+      const badgeRed = document.getElementById('badge-count-red');
+      const badgeOrange = document.getElementById('badge-count-orange');
+      const badgeYellow = document.getElementById('badge-count-yellow');
+      const badgeGreen = document.getElementById('badge-count-green');
+
+      if (!summary) return;
+
+      if (summary.critical_count > 0) {
+        badgeRed.textContent = `🔴 วิกฤต ${summary.critical_count}`;
+        badgeRed.classList.remove('hidden');
+      } else {
+        badgeRed.classList.add('hidden');
+      }
+
+      if (summary.warning_count > 0) {
+        badgeOrange.textContent = `🟠 เตือน ${summary.warning_count}`;
+        badgeOrange.classList.remove('hidden');
+      } else {
+        badgeOrange.classList.add('hidden');
+      }
+
+      if (summary.watch_count > 0) {
+        badgeYellow.textContent = `🟡 เฝ้าระวัง ${summary.watch_count}`;
+        badgeYellow.classList.remove('hidden');
+      } else {
+        badgeYellow.classList.add('hidden');
+      }
+
+      if (summary.normal_count > 0) {
+        badgeGreen.textContent = `🟢 ปกติ ${summary.normal_count}`;
+        badgeGreen.classList.remove('hidden');
+      } else {
+        badgeGreen.classList.add('hidden');
+      }
+    }
+
+    // Render native Google Maps Circles and Markers with dynamic color, radius, and bounce
+    function renderGoogleMapZones(zones) {
+      if (!gmap || !window.google || !window.google.maps) return;
+
+      zones.forEach((zone, idx) => {
+        const tier = zone.risk_tier || 'GREEN';
+        const cfg = GOOGLE_RADIUS_CONFIG[tier] || GOOGLE_RADIUS_CONFIG.GREEN;
+        const isSelected = (zone.id === selectedLocationId);
+        const pos = { lat: zone.lat, lng: zone.lon };
+
+        // 1. Update or create google.maps.Circle
+        if (gmapCircles[zone.id]) {
+          const circle = gmapCircles[zone.id];
+          circle.setRadius(cfg.radius);
+          circle.setOptions({
+            strokeColor: cfg.strokeColor,
+            strokeOpacity: cfg.strokeOpacity,
+            strokeWeight: isSelected ? 3.5 : cfg.strokeWeight,
+            fillColor: cfg.fillColor,
+            fillOpacity: cfg.fillOpacity,
+            zIndex: isSelected ? 20 : 10
+          });
+        } else {
+          const circle = new google.maps.Circle({
+            strokeColor: cfg.strokeColor,
+            strokeOpacity: cfg.strokeOpacity,
+            strokeWeight: isSelected ? 3.5 : cfg.strokeWeight,
+            fillColor: cfg.fillColor,
+            fillOpacity: cfg.fillOpacity,
+            map: gmap,
+            center: pos,
+            radius: cfg.radius,
+            clickable: true,
+            zIndex: isSelected ? 20 : 10
+          });
+
+          // Circle Click -> open InfoWindow and update 24h dashboard
+          circle.addListener('click', () => {
+            openGoogleMapInfoWindow(zone);
+            selectLocation(zone.id, false);
+          });
+
+          gmapCircles[zone.id] = circle;
+        }
+
+        // 2. Update or create center google.maps.Marker (bouncing for RED zones)
+        const isRed = (tier === 'RED');
+        const markerAnim = isRed ? google.maps.Animation.BOUNCE : null;
+
+        if (gmapMarkers[zone.id]) {
+          const marker = gmapMarkers[zone.id];
+          marker.setAnimation(markerAnim);
+          marker.setIcon({
+            path: google.maps.SymbolPath.CIRCLE,
+            scale: isRed ? 14 : 12,
+            fillColor: cfg.fillColor,
+            fillOpacity: 1,
+            strokeColor: '#ffffff',
+            strokeWeight: 2
+          });
+        } else {
+          const marker = new google.maps.Marker({
+            position: pos,
+            map: gmap,
+            title: zone.name_th,
+            animation: markerAnim,
+            label: {
+              text: `${idx + 1}`,
+              color: '#ffffff',
+              fontWeight: 'bold',
+              fontSize: '11px'
+            },
+            icon: {
+              path: google.maps.SymbolPath.CIRCLE,
+              scale: isRed ? 14 : 12,
+              fillColor: cfg.fillColor,
+              fillOpacity: 1,
+              strokeColor: '#ffffff',
+              strokeWeight: 2
+            },
+            zIndex: 30
+          });
+
+          marker.addListener('click', () => {
+            openGoogleMapInfoWindow(zone);
+            selectLocation(zone.id, false);
+          });
+
+          gmapMarkers[zone.id] = marker;
+        }
+      });
+    }
+
+    // Open Google Maps InfoWindow displaying exact format: [Zone Name] | Peak Rain: XX mm/hr | Risk: [TIER]
+    function openGoogleMapInfoWindow(zone) {
+      if (!gmap || !gmapInfoWindow) return;
+      const cfg = GOOGLE_RADIUS_CONFIG[zone.risk_tier] || GOOGLE_RADIUS_CONFIG.GREEN;
+      const peakRain = (zone.peak_rain_mm !== undefined ? zone.peak_rain_mm : (zone.peak_6h_hourly || 0)).toFixed(1);
+      const cum3hr = (zone.cumulative_3hr_mm !== undefined ? zone.cumulative_3hr_mm : (zone.max_3hr_cumulative || 0)).toFixed(1);
+
+      const contentHtml = `
+        <div style="background-color: #0f172a; color: #f8fafc; padding: 12px 14px; border-radius: 12px; font-family: 'Prompt', 'Inter', sans-serif; min-width: 250px; max-width: 310px; box-sizing: border-box;">
+          <div style="font-size: 14px; font-weight: 700; color: #ffffff; margin-bottom: 6px; border-bottom: 1px solid #334155; padding-bottom: 6px; display: flex; justify-content: space-between; align-items: center;">
+            <span>${zone.name_th}</span>
+            <span style="font-size: 10px; padding: 2px 8px; border-radius: 9999px; font-weight: 800; background: ${cfg.fillColor}25; color: ${cfg.fillColor}; border: 1px solid ${cfg.fillColor}80;">
+              ${zone.risk_tier}
+            </span>
+          </div>
+          <div style="font-size: 12px; line-height: 1.5; color: #cbd5e1; margin-bottom: 8px;">
+            <div style="margin-bottom: 4px; font-weight: 600; color: #f1f5f9;">
+              [${zone.name_th}] | Peak Rain: ${peakRain} mm/hr | Risk: [${zone.risk_tier}]
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 11px; color: #94a3b8; margin-top: 4px;">
+              <span>รัศมีผลกระทบ:</span>
+              <strong style="color: ${cfg.fillColor};">${(cfg.radius / 1000).toFixed(1)} กม.</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 11px; color: #94a3b8;">
+              <span>สะสม 3 ชม. สูงสุด:</span>
+              <strong style="color: #38bdf8;">${cum3hr} มม.</strong>
+            </div>
+            <div style="margin-top: 6px; padding-top: 6px; border-top: 1px solid #1e293b; font-size: 11px; color: #cbd5e1; line-height: 1.35;">
+              <strong style="color: #94a3b8;">คำแนะนำ:</strong> ${zone.action_text || zone.action_th}
+            </div>
+          </div>
+          <button onclick="selectLocation('${zone.id}', false)" style="width: 100%; padding: 6px 10px; font-size: 11px; font-weight: 600; border-radius: 8px; background-color: #2563eb; color: #ffffff; border: none; cursor: pointer; transition: background 0.2s;">
+            📊 แสดงกราฟและข้อมูล 24 ชม.
+          </button>
+        </div>
+      `;
+
+      gmapInfoWindow.setContent(contentHtml);
+      const marker = gmapMarkers[zone.id];
+      if (marker) {
+        gmapInfoWindow.open({
+          map: gmap,
+          anchor: marker,
+          shouldFocus: false
+        });
+      } else {
+        gmapInfoWindow.setPosition({ lat: zone.lat, lng: zone.lon });
+        gmapInfoWindow.open(gmap);
+      }
+    }
+
+    // Render geographic radius circles and center markers for Leaflet (Fallback/Alternative)
+    function renderMapZones(zones) {
+      if (!map) return;
+
+      Object.values(zoneCircles).forEach(circle => { map.removeLayer(circle); });
+      Object.values(zoneMarkers).forEach(marker => { map.removeLayer(marker); });
+      zoneCircles = {};
+      zoneMarkers = {};
+
+      zones.forEach((zone, idx) => {
+        const isSelected = (zone.id === selectedLocationId);
+
+        const circle = L.circle([zone.lat, zone.lon], {
+          color: zone.risk_color,
+          fillColor: zone.risk_color,
+          fillOpacity: zone.fill_opacity,
+          radius: zone.radius_meters,
+          weight: isSelected ? 3.5 : 2,
+          dashArray: isSelected ? '4, 4' : null,
+          className: zone.risk_tier === 'RED' ? 'pulse-circle-red' : ''
+        }).addTo(map);
+
+        const markerHtml = `
+          <div class="relative flex items-center justify-center cursor-pointer group">
+            ${zone.risk_tier === 'RED' ? '<span class="animate-ping absolute inline-flex h-8 w-8 rounded-full bg-rose-500 opacity-75"></span>' : ''}
+            ${zone.risk_tier === 'ORANGE' ? '<span class="animate-ping absolute inline-flex h-7 w-7 rounded-full bg-orange-400 opacity-50"></span>' : ''}
+            <span class="relative inline-flex items-center justify-center rounded-full h-6 w-6 border-2 border-white shadow-xl text-xs font-bold transition transform group-hover:scale-125" style="background-color: ${zone.risk_color}; color: #fff;">
+              ${idx + 1}
+            </span>
+          </div>
+        `;
+        const customIcon = L.divIcon({
+          className: 'custom-zone-marker',
+          html: markerHtml,
+          iconSize: [24, 24],
+          iconAnchor: [12, 12]
+        });
+
+        const marker = L.marker([zone.lat, zone.lon], { icon: customIcon }).addTo(map);
+
+        const popupHtml = `
+          <div class="min-w-[240px] text-slate-100 font-sans">
+            <div class="flex items-center justify-between border-b border-slate-700 pb-2 mb-2">
+              <span class="font-bold text-sm text-white">${zone.name_th}</span>
+              <span class="text-[10px] px-2 py-0.5 rounded font-black tracking-wide" style="background-color: ${zone.risk_color}25; color: ${zone.risk_color}; border: 1px solid ${zone.risk_color}60;">
+                ${zone.risk_tier}
+              </span>
+            </div>
+            <div class="space-y-1.5 text-xs text-slate-300">
+              <div class="flex justify-between items-center">
+                <span class="text-slate-400">ฝนตกสูงสุด:</span>
+                <strong class="text-white text-sm">${(zone.peak_rain_mm || zone.peak_6h_hourly).toFixed(1)} มม./ชม.</strong>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-slate-400">รัศมีผลกระทบ:</span>
+                <strong style="color: ${zone.risk_color};">${(zone.radius_meters / 1000).toFixed(1)} กม.</strong>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-slate-400">สะสม 3 ชม. สูงสุด:</span>
+                <strong class="text-cyan-400 font-medium">${(zone.cumulative_3hr_mm || zone.max_3hr_cumulative).toFixed(1)} มม.</strong>
+              </div>
+              <div class="pt-1.5 border-t border-slate-800 text-[11px] text-slate-300 leading-snug">
+                <span class="text-slate-400 font-medium">คำแนะนำ:</span> ${zone.action_text || zone.action_th}
+              </div>
+            </div>
+            <button onclick="selectLocation('${zone.id}', false)" class="mt-2.5 w-full py-1.5 text-center text-xs font-semibold rounded-lg bg-blue-600 hover:bg-blue-500 text-white transition shadow-sm">
+              📊 แสดงกราฟและข้อมูลโซนนี้
+            </button>
+          </div>
+        `;
+
+        circle.bindPopup(popupHtml, { maxWidth: 280, autoPan: true, autoPanPaddingTopLeft: [20, 60] });
+        marker.bindPopup(popupHtml, { maxWidth: 280, autoPan: true, autoPanPaddingTopLeft: [20, 60] });
+
+        circle.on('click', () => {
+          circle.openPopup();
+          selectLocation(zone.id, false);
+        });
+        marker.on('click', () => {
+          circle.openPopup();
+          selectLocation(zone.id, false);
+        });
+
+        zoneCircles[zone.id] = circle;
+        zoneMarkers[zone.id] = marker;
+      });
+    }
+
+    // Location selection with smooth Google Maps and Leaflet sync
+    function selectLocation(locId, shouldFly = true) {
+      selectedLocationId = locId;
+      updateActiveLocationCard(locId);
+      fetchForecastData();
+
+      // Highlight active circle on Leaflet
+      Object.keys(zoneCircles).forEach(id => {
+        const c = zoneCircles[id];
+        if (id === locId) {
+          c.setStyle({ weight: 3.5, dashArray: '4, 4' });
+        } else {
+          c.setStyle({ weight: 2, dashArray: null });
+        }
+      });
+
+      // Highlight active circle on Google Map
+      Object.keys(gmapCircles).forEach(id => {
+        const c = gmapCircles[id];
+        c.setOptions({
+          strokeWeight: (id === locId) ? 4 : 2,
+          zIndex: (id === locId) ? 25 : 10
+        });
+      });
+
+      const zone = allZonesData.find(z => z.id === locId);
+
+      // Smooth pan to zone on Google Map
+      if (shouldFly && gmap && zone) {
+        gmap.panTo({ lat: zone.lat, lng: zone.lon });
+        gmap.setZoom(13);
+        openGoogleMapInfoWindow(zone);
+      }
+
+      // Smooth pan on Leaflet
+      if (shouldFly && map && zone) {
+        map.flyTo([zone.lat, zone.lon], 12, { animate: true, duration: 1 });
+        if (zoneCircles[locId]) {
+          setTimeout(() => {
+            zoneCircles[locId].openPopup();
+          }, 800);
+        }
+      }
+    }
+
+    function updateActiveLocationCard(locId) {
+      document.querySelectorAll('.location-card').forEach(card => {
+        card.classList.remove('border-blue-500', 'bg-blue-950/20', 'shadow-md', 'shadow-blue-500/10');
+        card.classList.add('border-slate-800');
+      });
+      const activeCard = document.getElementById(`loc-card-${locId}`);
+      if (activeCard) {
+        activeCard.classList.remove('border-slate-800');
+        activeCard.classList.add('border-blue-500', 'bg-blue-950/20', 'shadow-md', 'shadow-blue-500/10');
+      }
+    }
+
+    // Simulation Handlers
+    function runSimulation(scenarioId) {
+      currentMode = 'simulation';
+      currentScenario = scenarioId;
+
+      updateSimulationButtons(scenarioId);
+
+      const banner = document.getElementById('sim-status-banner');
+      const desc = document.getElementById('sim-scenario-desc');
+      banner.classList.remove('hidden');
+
+      const scenarioNames = {
+        'normal': '🟢 จำลองสภาพปกติ (ฝนเบาบาง < 10 มม.)',
+        'watch': '🟡 จำลองฝนปานกลาง 22 มม. (เฝ้าระวังน้ำขัง)',
+        'heavy': '🟠 จำลองฝนตกหนัก 45 มม. (แจ้งเตือนส้ม ใกล้เต็มท่อ)',
+        'extreme': '🔴 จำลองพายุวิกฤต 75 มม. (วิกฤตแดง เกินท่อ กทม.)',
+        'cumulative_red': '🌊 จำลองฝนแช่สะสม 3 ชม. > 80 มม. (วิกฤตแดง)'
+      };
+      desc.textContent = `🧪 โหมดจำลอง: ${scenarioNames[scenarioId] || scenarioId}`;
+
+      const liveInd = document.getElementById('live-indicator');
+      const liveText = document.getElementById('live-status-text');
+      liveText.textContent = 'โหมดจำลองสถานการณ์';
+      liveInd.className = 'flex items-center space-x-2 px-3 py-1.5 rounded-full bg-purple-950/60 border border-purple-500/40 text-purple-300';
+
+      // Redraw both Google Maps and Leaflet circles dynamically
+      fetchAndRenderMapZones(scenarioId);
+      fetchForecastData();
+    }
+
+    function switchToLiveMode() {
+      currentMode = 'live';
+      currentScenario = null;
+
+      updateSimulationButtons('live');
+
+      document.getElementById('sim-status-banner').classList.add('hidden');
+
+      const liveInd = document.getElementById('live-indicator');
+      const liveText = document.getElementById('live-status-text');
+      liveText.textContent = 'ข้อมูลสด Open-Meteo';
+      liveInd.className = 'flex items-center space-x-2 px-3 py-1.5 rounded-full bg-slate-800 border border-slate-700 text-slate-300';
+
+      // Redraw maps with live Open-Meteo data
+      fetchAndRenderMapZones(null);
+      fetchForecastData();
+    }
+
+    function updateSimulationButtons(activeId) {
+      const btnIds = ['live', 'normal', 'watch', 'heavy', 'extreme', 'cumulative_red'];
+      btnIds.forEach(id => {
+        const btn = document.getElementById(`btn-${id === 'live' ? 'mode-live' : 'sim-' + id}`);
+        if (!btn) return;
+        if (id === activeId) {
+          btn.classList.add('ring-2', 'ring-white', 'scale-[1.02]');
+          if (id !== 'live') {
+            btn.classList.add('bg-slate-700');
+          }
+        } else {
+          btn.classList.remove('ring-2', 'ring-white', 'scale-[1.02]', 'bg-slate-700');
+        }
+      });
+    }
+
+    // Modal Control
+    function toggleStandardsModal(show) {
+      const modal = document.getElementById('standards-modal');
+      if (show) modal.classList.remove('hidden');
+      else modal.classList.add('hidden');
+    }
+
+    // Init on DOM ready
+    document.addEventListener('DOMContentLoaded', () => {
+      initChart();
+      initGMap();
+
+      const params = new URLSearchParams(window.location.search);
+      const locParam = params.get('location');
+      const simParam = params.get('scenario');
+      const providerParam = params.get('provider');
+
+      if (providerParam === 'leaflet') {
+        setMapProvider('leaflet');
+      }
+
+      if (locParam) {
+        selectedLocationId = locParam;
+      }
+      updateActiveLocationCard(selectedLocationId);
+
+      if (simParam && ['normal', 'watch', 'heavy', 'extreme', 'cumulative_red'].includes(simParam)) {
+        runSimulation(simParam);
+      } else {
+        fetchAndRenderMapZones(null);
+        fetchForecastData();
+      }
+
+      if (params.get('popup')) {
+        setTimeout(() => {
+          const targetId = locParam || 'chatuchak';
+          const zone = allZonesData.find(z => z.id === targetId);
+          if (zone) {
+            if (currentMapProvider === 'google' && gmap) {
+              gmap.panTo({ lat: zone.lat - 0.018, lng: zone.lon });
+              gmap.setZoom(12);
+              setTimeout(() => {
+                openGoogleMapInfoWindow(zone);
+              }, 400);
+            } else if (zoneCircles[targetId]) {
+              zoneCircles[targetId].openPopup();
+            }
+          }
+        }, 1200);
+      }
+    });
+  </script>
+</body>
+</html>
