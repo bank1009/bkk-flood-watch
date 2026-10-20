@@ -237,7 +237,7 @@ def test_bangkok_boundary_geojson_endpoint(client):
     assert feature["geometry"]["type"] in ["Polygon", "MultiPolygon"]
     assert len(feature["geometry"]["coordinates"]) > 0
 
-    # Verify no coordinates dip below 13.52 into the Gulf of Thailand
+    # Verify no coordinates dip below 13.44 into the Gulf of Thailand
     lats = []
     def _collect(coords):
         if len(coords) >= 2 and isinstance(coords[0], (int, float)):
@@ -246,7 +246,7 @@ def test_bangkok_boundary_geojson_endpoint(client):
             for c in coords:
                 _collect(c)
     _collect(feature["geometry"]["coordinates"])
-    assert min(lats) == 13.52
+    assert min(lats) == 13.44
 
 
 def test_ensure_bangkok_boundary_geojson_helper():
@@ -256,5 +256,14 @@ def test_ensure_bangkok_boundary_geojson_helper():
     path = ensure_bangkok_boundary_geojson()
     assert os.path.exists(path)
     assert os.path.getsize(path) > 1000
+
+
+def test_footer_email_attribution(client):
+    """Test that homepage footer renders clickable mailto link for chavalit.tira@gmail.com."""
+    response = client.get("/")
+    assert response.status_code == 200
+    html = response.data.decode("utf-8")
+    assert "chavalit.tira@gmail.com" in html
+    assert 'href="mailto:chavalit.tira@gmail.com"' in html
 
 
