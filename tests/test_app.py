@@ -224,3 +224,26 @@ def test_api_check_location_simulation_normal(client):
     assert data["peak_rain_mm"] < 10.0
 
 
+def test_bangkok_boundary_geojson_endpoint(client):
+    """Test that /static/bangkok_boundary.geojson returns a valid FeatureCollection."""
+    res = client.get("/static/bangkok_boundary.geojson")
+    assert res.status_code == 200
+    data = res.get_json()
+    assert data["type"] == "FeatureCollection"
+    assert len(data["features"]) > 0
+    feature = data["features"][0]
+    assert feature["type"] == "Feature"
+    assert feature["properties"]["name"] == "Bangkok"
+    assert feature["geometry"]["type"] in ["Polygon", "MultiPolygon"]
+    assert len(feature["geometry"]["coordinates"]) > 0
+
+
+def test_ensure_bangkok_boundary_geojson_helper():
+    """Test that ensure_bangkok_boundary_geojson returns an existing valid file path."""
+    import os
+    from app import ensure_bangkok_boundary_geojson
+    path = ensure_bangkok_boundary_geojson()
+    assert os.path.exists(path)
+    assert os.path.getsize(path) > 1000
+
+

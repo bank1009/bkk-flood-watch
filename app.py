@@ -7,12 +7,13 @@ __author__ = "Bank Chavalit Tirakitti"
 __copyright__ = "Copyright (c) 2026 Bank Chavalit Tirakitti"
 
 import os
+import json
 import logging
 from datetime import datetime, timezone, timedelta
 from typing import Dict, Any, Optional
 
 import requests
-from flask import Flask, render_template, jsonify, request
+from flask import Flask, render_template, jsonify, request, send_from_directory
 
 from flood_engine import (
     BANGKOK_LOCATIONS,
@@ -31,6 +32,55 @@ app.json.sort_keys = False
 
 # Bangkok Timezone (UTC+7)
 BKK_TZ = timezone(timedelta(hours=7))
+
+
+def ensure_bangkok_boundary_geojson() -> str:
+    """
+    Checks if static/bangkok_boundary.geojson exists.
+    If not, fetches the official administrative boundary polygon from OpenStreetMap Nominatim API,
+    wraps it in a valid GeoJSON FeatureCollection structure, and saves it.
+    """
+    static_dir = os.path.join(os.path.dirname(__file__), "static")
+    os.makedirs(static_dir, exist_ok=True)
+    geojson_path = os.path.join(static_dir, "bangkok_boundary.geojson")
+
+    if os.path.exists(geojson_path) and os.path.getsize(geojson_path) > 1000:
+        return geojson_path
+
+    logger.info("Fetching Bangkok administrative boundary from Nominatim API...")
+    try:
+        url = "https://nominatim.openstreetmap.org/search?state=Bangkok&country=Thailand&polygon_geojson=1&format=jsonv2"
+        headers = {"User-Agent": "BKKFloodWatch/1.0 (contact@bkkfloodwatch.local)"}
+        resp = requests.get(url, headers=headers, timeout=20)
+        resp.raise_for_status()
+        data = resp.json()
+        if data and isinstance(data, list) and len(data) > 0 and data[0].get("geojson"):
+            feature_collection = {
+                "type": "FeatureCollection",
+                "features": [
+                    {
+                        "type": "Feature",
+                        "properties": {
+                            "name": "Bangkok",
+                            "name_th": "กรุงเทพมหานคร",
+                            "admin_level": 4,
+                            "display_name": data[0].get("display_name", "กรุงเทพมหานคร, ประเทศไทย")
+                        },
+                        "geometry": data[0]["geojson"]
+                    }
+                ]
+            }
+            with open(geojson_path, "w", encoding="utf-8") as f:
+                json.dump(feature_collection, f, ensure_ascii=False, indent=2)
+            logger.info("Saved bangkok_boundary.geojson (%d bytes)", os.path.getsize(geojson_path))
+    except Exception as e:
+        logger.warning("Could not fetch Bangkok boundary from Nominatim: %s", e)
+
+    return geojson_path
+
+
+# Ensure boundary exists at startup
+ensure_bangkok_boundary_geojson()
 
 # Weather code lookup
 WEATHER_CODES = {
@@ -136,6 +186,14 @@ def index():
         simulations=SIMULATION_SCENARIOS,
         google_maps_api_key=os.environ.get("GOOGLE_MAPS_API_KEY", "")
     )
+
+
+@app.route("/static/bangkok_boundary.geojson")
+def serve_bangkok_boundary():
+    """Serves the Bangkok administrative boundary GeoJSON for GIS mapping."""
+    ensure_bangkok_boundary_geojson()
+    static_dir = os.path.join(os.path.dirname(__file__), "static")
+    return send_from_directory(static_dir, "bangkok_boundary.geojson", mimetype="application/geo+json")
 
 
 @app.route("/api/locations")

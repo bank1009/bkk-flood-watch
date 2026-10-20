@@ -332,9 +332,10 @@
             <span class="text-lg">🗺️</span>
             <h3 class="text-base font-bold text-white">แผนที่เรดาร์คาดการณ์รัศมีน้ำท่วมขัง (Interactive Flood Risk Radius Map)</h3>
             <span id="map-provider-badge" class="text-xs px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/30 font-medium">Google Maps Dark</span>
+            <span class="text-xs px-2 py-0.5 rounded-full bg-red-500/10 text-red-400 border border-red-500/30 font-medium">🚨 ขอบเขต กทม. (BKK Boundary)</span>
           </div>
           <p class="text-xs text-slate-400 mt-0.5">
-            แสดงรัศมีผลกระทบคาดการณ์ 6 โซน กทม. | <span class="text-blue-400 font-semibold">📍 คลิกบนแผนที่จุดใดก็ได้เพื่อปักหมุดวิเคราะห์น้ำท่วมเฉพาะจุด (Drop a Pin)</span>
+            แสดงรัศมีผลกระทบคาดการณ์ 6 โซน กทม. | เส้นขอบแดง = เขตปกครองกรุงเทพฯ | <span class="text-blue-400 font-semibold">📍 คลิกบนแผนที่จุดใดก็ได้เพื่อปักหมุดวิเคราะห์น้ำท่วมเฉพาะจุด (Drop a Pin)</span>
           </p>
         </div>
 
@@ -1256,11 +1257,28 @@
         fullscreenControl: true,
         backgroundColor: '#090d16'
       });
+      window.gmap = gmap;
 
       gmapInfoWindow = new google.maps.InfoWindow({
         minWidth: 260,
         maxWidth: 320
       });
+
+      // Load official administrative boundary of Bangkok (Red Outline) - Professional GIS Standard
+      try {
+        gmap.data.loadGeoJson('/static/bangkok_boundary.geojson', null, function(features) {
+          window.bkkBoundaryLoaded = true;
+          console.log('Bangkok GeoJSON boundary loaded successfully:', features ? features.length : 0, 'features');
+        });
+        gmap.data.setStyle({
+          strokeColor: '#ef4444',
+          strokeWeight: 3,
+          fillOpacity: 0,
+          clickable: false
+        });
+      } catch (err) {
+        console.warn('Could not load Bangkok GeoJSON boundary on Google Maps:', err);
+      }
 
       // Map Click: Drop a Pin & Analyze flood risk for clicked coordinates
       gmap.addListener('click', (e) => {
@@ -1326,6 +1344,21 @@
           handleMapLocationClick(e.latlng.lat, e.latlng.lng);
         }
       });
+
+      // Load official administrative boundary of Bangkok (Red Outline) for Leaflet
+      fetch('/static/bangkok_boundary.geojson')
+        .then(res => res.json())
+        .then(geojson => {
+          L.geoJSON(geojson, {
+            style: {
+              color: '#ef4444',
+              weight: 3,
+              fillOpacity: 0
+            },
+            interactive: false
+          }).addTo(map);
+        })
+        .catch(err => console.warn('Could not load Bangkok GeoJSON boundary on Leaflet:', err));
 
       setTimeout(() => { map.invalidateSize(); }, 350);
     }
@@ -1616,6 +1649,7 @@
       if (customPinCircle) {
         customPinCircle.setMap(null);
         customPinCircle = null;
+        window.customPinCircle = null;
       }
       if (customPinMarker) {
         customPinMarker.setMap(null);
@@ -1679,6 +1713,7 @@
             clickable: true,
             zIndex: 40
           });
+          window.customPinCircle = customPinCircle;
 
           // Center Pin marker
           const isRed = (tier === 'RED');
@@ -1987,6 +2022,7 @@
       if (customPinCircle) {
         customPinCircle.setMap(null);
         customPinCircle = null;
+        window.customPinCircle = null;
       }
       if (customPinMarker) {
         customPinMarker.setMap(null);
