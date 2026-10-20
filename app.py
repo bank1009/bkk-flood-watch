@@ -34,20 +34,53 @@ app.json.sort_keys = False
 BKK_TZ = timezone(timedelta(hours=7))
 
 
-def ensure_bangkok_boundary_geojson() -> str:
+def clamp_coordinates(coords, min_lat: float = 13.52):
     """
-    Checks if static/bangkok_boundary.geojson exists.
-    If not, fetches the official administrative boundary polygon from OpenStreetMap Nominatim API,
+    Recursively clamp GeoJSON coordinates so that latitude (index 1) does not dip below min_lat.
+    GeoJSON coordinates are [lon, lat]. Clamping flattens the polygon along the coastline at 13.52
+    and removes the sharp maritime claim spike extending into the Gulf of Thailand.
+    """
+    if not isinstance(coords, list):
+        return coords
+    if len(coords) >= 2 and isinstance(coords[0], (int, float)) and isinstance(coords[1], (int, float)):
+        lon = coords[0]
+        lat = coords[1]
+        clamped_lat = max(lat, min_lat)
+        return [lon, clamped_lat] + coords[2:]
+    return [clamp_coordinates(item, min_lat) for item in coords]
+
+
+def ensure_bangkok_boundary_geojson(force: bool = False) -> str:
+    """
+    Checks if static/bangkok_boundary.geojson exists and is cleaned.
+    If not (or if force=True), fetches the official administrative boundary polygon from Nominatim API,
+    clamps coordinates to min latitude 13.52 to remove the maritime Gulf of Thailand spike,
     wraps it in a valid GeoJSON FeatureCollection structure, and saves it.
     """
     static_dir = os.path.join(os.path.dirname(__file__), "static")
     os.makedirs(static_dir, exist_ok=True)
     geojson_path = os.path.join(static_dir, "bangkok_boundary.geojson")
 
-    if os.path.exists(geojson_path) and os.path.getsize(geojson_path) > 1000:
-        return geojson_path
+    # If file exists, verify that it has been cleaned (min_lat >= 13.52)
+    if not force and os.path.exists(geojson_path) and os.path.getsize(geojson_path) > 1000:
+        try:
+            with open(geojson_path, "r", encoding="utf-8") as f:
+                cached = json.load(f)
+            lats = []
+            def _collect_lats(c):
+                if len(c) >= 2 and isinstance(c[0], (int, float)):
+                    lats.append(c[1])
+                else:
+                    for x in c:
+                        _collect_lats(x)
+            _collect_lats(cached["features"][0]["geometry"]["coordinates"])
+            if lats and min(lats) >= 13.52:
+                return geojson_path
+            logger.info("Existing bangkok_boundary.geojson contains unclamped coordinates (min lat: %.4f). Re-cleaning...", min(lats))
+        except Exception as e:
+            logger.warning("Error inspecting cached boundary: %s", e)
 
-    logger.info("Fetching Bangkok administrative boundary from Nominatim API...")
+    logger.info("Fetching and cleaning Bangkok administrative boundary from Nominatim API...")
     try:
         url = "https://nominatim.openstreetmap.org/search?state=Bangkok&country=Thailand&polygon_geojson=1&format=jsonv2"
         headers = {"User-Agent": "BKKFloodWatch/1.0 (contact@bkkfloodwatch.local)"}
@@ -55,6 +88,11 @@ def ensure_bangkok_boundary_geojson() -> str:
         resp.raise_for_status()
         data = resp.json()
         if data and isinstance(data, list) and len(data) > 0 and data[0].get("geojson"):
+            raw_geojson = data[0]["geojson"]
+            # Clean coordinates by clamping latitude to 13.52 to remove maritime spike into Gulf of Thailand
+            if "coordinates" in raw_geojson:
+                raw_geojson["coordinates"] = clamp_coordinates(raw_geojson["coordinates"], min_lat=13.52)
+
             feature_collection = {
                 "type": "FeatureCollection",
                 "features": [
@@ -66,15 +104,15 @@ def ensure_bangkok_boundary_geojson() -> str:
                             "admin_level": 4,
                             "display_name": data[0].get("display_name", "กรุงเทพมหานคร, ประเทศไทย")
                         },
-                        "geometry": data[0]["geojson"]
+                        "geometry": raw_geojson
                     }
                 ]
             }
             with open(geojson_path, "w", encoding="utf-8") as f:
                 json.dump(feature_collection, f, ensure_ascii=False, indent=2)
-            logger.info("Saved bangkok_boundary.geojson (%d bytes)", os.path.getsize(geojson_path))
+            logger.info("Saved cleaned bangkok_boundary.geojson (%d bytes)", os.path.getsize(geojson_path))
     except Exception as e:
-        logger.warning("Could not fetch Bangkok boundary from Nominatim: %s", e)
+        logger.warning("Could not fetch or clean Bangkok boundary from Nominatim: %s", e)
 
     return geojson_path
 

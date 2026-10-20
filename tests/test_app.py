@@ -225,7 +225,7 @@ def test_api_check_location_simulation_normal(client):
 
 
 def test_bangkok_boundary_geojson_endpoint(client):
-    """Test that /static/bangkok_boundary.geojson returns a valid FeatureCollection."""
+    """Test that /static/bangkok_boundary.geojson returns a valid FeatureCollection with latitude clamped to >= 13.52."""
     res = client.get("/static/bangkok_boundary.geojson")
     assert res.status_code == 200
     data = res.get_json()
@@ -236,6 +236,17 @@ def test_bangkok_boundary_geojson_endpoint(client):
     assert feature["properties"]["name"] == "Bangkok"
     assert feature["geometry"]["type"] in ["Polygon", "MultiPolygon"]
     assert len(feature["geometry"]["coordinates"]) > 0
+
+    # Verify no coordinates dip below 13.52 into the Gulf of Thailand
+    lats = []
+    def _collect(coords):
+        if len(coords) >= 2 and isinstance(coords[0], (int, float)):
+            lats.append(coords[1])
+        else:
+            for c in coords:
+                _collect(c)
+    _collect(feature["geometry"]["coordinates"])
+    assert min(lats) == 13.52
 
 
 def test_ensure_bangkok_boundary_geojson_helper():
