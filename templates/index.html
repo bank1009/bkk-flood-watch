@@ -67,30 +67,20 @@
       width: 0 !important;
       z-index: -9999 !important;
     }
-    /* Diminish the dark grayscale overlay applied to keyless development mode */
-    .gm-style > div:first-child > div:nth-child(2) {
-      opacity: 0.05 !important;
-      pointer-events: none !important;
-    }
-    /* Ensure Google Maps canvas and overlays remain fully interactive */
-    #bkk-google-map {
-      background-color: #090d16;
-    }
-    #bkk-google-map * {
-      pointer-events: auto;
-    }
-    .gm-style iframe + div,
-    .gm-style div[style*="z-index: 1000002"] {
-      pointer-events: none !important;
-    }
     /* Google Maps InfoWindow Dark Styling */
+    .gm-style .gm-style-iw-a {
+      z-index: 1000005 !important;
+      opacity: 1 !important;
+    }
     .gm-style .gm-style-iw-c {
       background-color: #0f172a !important;
       color: #f8fafc !important;
       border: 1px solid #334155 !important;
       border-radius: 14px !important;
       padding: 12px 14px !important;
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.8), 0 8px 10px -6px rgba(0, 0, 0, 0.8) !important;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.9), 0 8px 10px -6px rgba(0, 0, 0, 0.9) !important;
+      z-index: 1000006 !important;
+      opacity: 1 !important;
     }
     .gm-style .gm-style-iw-tc::after {
       background: #0f172a !important;
@@ -344,7 +334,7 @@
             <span id="map-provider-badge" class="text-xs px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/30 font-medium">Google Maps Dark</span>
           </div>
           <p class="text-xs text-slate-400 mt-0.5">
-            แสดงรัศมีผลกระทบคาดการณ์พร้อมกัน 6 โซนยุทธศาสตร์ กทม. บน Google Maps | วงกลม google.maps.Circle ขยายตาม BMA Alert Tier | คลิกวงกลมเพื่อเจาะลึก
+            แสดงรัศมีผลกระทบคาดการณ์ 6 โซน กทม. | <span class="text-blue-400 font-semibold">📍 คลิกบนแผนที่จุดใดก็ได้เพื่อปักหมุดวิเคราะห์น้ำท่วมเฉพาะจุด (Drop a Pin)</span>
           </p>
         </div>
 
@@ -366,6 +356,9 @@
             <span id="badge-count-yellow" class="hidden px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30 font-semibold">🟡 เฝ้าระวัง 0</span>
             <span id="badge-count-green" class="hidden px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-semibold">🟢 ปกติ 6</span>
           </div>
+          <button id="btn-use-location" onclick="useCurrentLocation()" class="px-2.5 py-1 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs flex items-center gap-1 transition shadow-sm">
+            <span>📍 ใช้ตำแหน่งปัจจุบัน (Use My Current Location)</span>
+          </button>
           <button onclick="resetMapView()" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 text-xs flex items-center gap-1 transition">
             <span>🎯 มุมมองทั้ง กทม.</span>
           </button>
@@ -1098,6 +1091,13 @@
     let gmapMarkers = {};
     let gmapInfoWindow = null;
 
+    // Custom Pin References (Drop a Pin)
+    let customPinCircle = null;
+    let customPinMarker = null;
+    let customLeafletCircle = null;
+    let customLeafletMarker = null;
+    let currentCustomPin = null;
+
     // Dark Mode Map Style Array for Google Maps
     const darkMapStyles = [
       { elementType: "geometry", stylers: [{ color: "#171c26" }] },
@@ -1262,9 +1262,13 @@
         maxWidth: 320
       });
 
-      // Close InfoWindow when clicking outside
-      gmap.addListener('click', () => {
-        if (gmapInfoWindow) gmapInfoWindow.close();
+      // Map Click: Drop a Pin & Analyze flood risk for clicked coordinates
+      gmap.addListener('click', (e) => {
+        if (e && e.latLng) {
+          const lat = e.latLng.lat();
+          const lng = e.latLng.lng();
+          handleMapLocationClick(lat, lng);
+        }
       });
 
       if (allZonesData && allZonesData.length > 0) {
@@ -1315,6 +1319,13 @@
         "Esri Dark Canvas": esriDark
       };
       L.control.layers(baseLayers, null, { position: 'topright' }).addTo(map);
+
+      // Leaflet Map Click: Drop a Pin
+      map.on('click', (e) => {
+        if (e && e.latlng) {
+          handleMapLocationClick(e.latlng.lat, e.latlng.lng);
+        }
+      });
 
       setTimeout(() => { map.invalidateSize(); }, 350);
     }
@@ -1461,7 +1472,8 @@
           });
 
           // Circle Click -> open InfoWindow and update 24h dashboard
-          circle.addListener('click', () => {
+          circle.addListener('click', (e) => {
+            if (e && e.stop) e.stop();
             openGoogleMapInfoWindow(zone);
             selectLocation(zone.id, false);
           });
@@ -1507,7 +1519,8 @@
             zIndex: 30
           });
 
-          marker.addListener('click', () => {
+          marker.addListener('click', (e) => {
+            if (e && e.stop) e.stop();
             openGoogleMapInfoWindow(zone);
             selectLocation(zone.id, false);
           });
@@ -1566,6 +1579,316 @@
         gmapInfoWindow.setPosition({ lat: zone.lat, lng: zone.lon });
         gmapInfoWindow.open(gmap);
       }
+    }
+
+    // Handle Drop a Pin: Map Click anywhere on Google Map / Leaflet
+    async function handleMapLocationClick(lat, lng, isCurrentLocation = false) {
+      if (lat === undefined || lng === undefined || lat === null || lng === null) return;
+
+      // 1. Show a loading indicator on the UI
+      const bannerTitle = document.getElementById('banner-title');
+      const bannerTag = document.getElementById('banner-tag');
+      const peakTimeTag = document.getElementById('banner-peak-time-tag');
+      const bannerAction = document.getElementById('banner-action');
+      const bannerPeakVal = document.getElementById('banner-peak-val');
+      const refreshIcon = document.getElementById('refresh-icon');
+
+      if (refreshIcon) refreshIcon.classList.add('animate-spin');
+
+      if (bannerTitle) {
+        bannerTitle.textContent = isCurrentLocation 
+          ? "กำลังวิเคราะห์สภาพอากาศ ณ ตำแหน่งปัจจุบันของคุณ..." 
+          : "กำลังวิเคราะห์สภาพอากาศ ณ จุดที่เลือก...";
+      }
+      if (bannerTag) {
+        bannerTag.textContent = isCurrentLocation 
+          ? `📍 ตำแหน่งปัจจุบัน (${lat.toFixed(4)}, ${lng.toFixed(4)})` 
+          : `พิกัด ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+        bannerTag.className = isCurrentLocation
+          ? 'text-xs px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider bg-emerald-500/30 text-emerald-300 border border-emerald-500/50'
+          : 'text-xs px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider bg-blue-500/30 text-blue-300 border border-blue-500/50';
+      }
+      if (peakTimeTag) peakTimeTag.textContent = "วิเคราะห์ข้อมูลดาวเทียม Open-Meteo";
+      if (bannerAction) bannerAction.textContent = "กำลังดึงข้อมูลปริมาณฝนและประเมินเกณฑ์ระบายน้ำ กทม....";
+      if (bannerPeakVal) bannerPeakVal.innerHTML = `<span class="text-sm font-medium text-slate-400">กำลังโหลด...</span>`;
+
+      // 2. State Management & Cleanup: remove previous custom pin circle and InfoWindow
+      if (customPinCircle) {
+        customPinCircle.setMap(null);
+        customPinCircle = null;
+      }
+      if (customPinMarker) {
+        customPinMarker.setMap(null);
+        customPinMarker = null;
+      }
+      if (gmapInfoWindow) {
+        gmapInfoWindow.close();
+      }
+      if (map && customLeafletCircle) {
+        map.removeLayer(customLeafletCircle);
+        customLeafletCircle = null;
+      }
+      if (map && customLeafletMarker) {
+        map.removeLayer(customLeafletMarker);
+        customLeafletMarker = null;
+      }
+
+      // Deselect existing zone cards
+      document.querySelectorAll('.location-card').forEach(card => {
+        card.classList.remove('border-blue-500', 'bg-blue-950/20', 'shadow-md', 'shadow-blue-500/10');
+        card.classList.add('border-slate-800');
+      });
+
+      try {
+        let url = `/api/check-location?lat=${lat}&lon=${lng}`;
+        if (currentMode === 'simulation' && currentScenario) {
+          url += `&scenario=${currentScenario}`;
+        }
+
+        const res = await fetch(url);
+        const data = await res.json();
+
+        if (!data.success) {
+          if (bannerTitle) bannerTitle.textContent = "เกิดข้อผิดพลาดในการดึงข้อมูลสภาพอากาศพิกัดนี้";
+          return;
+        }
+
+        currentCustomPin = { lat, lng, data, isCurrentLocation };
+        selectedLocationId = 'custom_pin';
+
+        if (isCurrentLocation && data.location) {
+          data.location.name_th = `ตำแหน่งปัจจุบันของคุณ (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
+          data.location.name_en = `Your Current Location (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
+        }
+
+        // 3. Drop a NEW dynamic google.maps.Circle at exact clicked location
+        const tier = data.risk_tier || 'GREEN';
+        const cfg = GOOGLE_RADIUS_CONFIG[tier] || GOOGLE_RADIUS_CONFIG.GREEN;
+        const pos = { lat: lat, lng: lng };
+
+        if (gmap && window.google && window.google.maps) {
+          customPinCircle = new google.maps.Circle({
+            strokeColor: cfg.strokeColor,
+            strokeOpacity: 1.0,
+            strokeWeight: 3.5,
+            fillColor: cfg.fillColor,
+            fillOpacity: cfg.fillOpacity,
+            map: gmap,
+            center: pos,
+            radius: cfg.radius,
+            clickable: true,
+            zIndex: 40
+          });
+
+          // Center Pin marker
+          const isRed = (tier === 'RED');
+          customPinMarker = new google.maps.Marker({
+            position: pos,
+            map: gmap,
+            title: isCurrentLocation ? `ตำแหน่งปัจจุบัน (${lat.toFixed(4)}, ${lng.toFixed(4)})` : `พิกัดที่เลือก (${lat.toFixed(4)}, ${lng.toFixed(4)})`,
+            animation: isRed ? google.maps.Animation.BOUNCE : null,
+            label: {
+              text: '📍',
+              fontSize: '13px'
+            },
+            icon: {
+              path: google.maps.SymbolPath.CIRCLE,
+              scale: 14,
+              fillColor: cfg.fillColor,
+              fillOpacity: 1,
+              strokeColor: '#ffffff',
+              strokeWeight: 2.5
+            },
+            zIndex: 50
+          });
+
+          // 4. Automatically open google.maps.InfoWindow displaying exact text:
+          // "พิกัดที่เลือก | Peak Rain: XX mm/hr | Risk: [TIER]"
+          const peakRain = (data.peak_rain_mm !== undefined ? data.peak_rain_mm : data.peak_hourly || 0).toFixed(1);
+          const cum3hr = (data.cumulative_3hr_mm !== undefined ? data.cumulative_3hr_mm : data.max_3hr_cumulative || 0).toFixed(1);
+          const pinTitle = isCurrentLocation ? "📍 ตำแหน่งปัจจุบัน (Current Location)" : "📍 พิกัดที่เลือก (Drop a Pin)";
+
+          const customInfoWindowHtml = `
+            <div style="background-color: #0f172a; color: #f8fafc; padding: 12px 14px; border-radius: 12px; font-family: 'Prompt', 'Inter', sans-serif; min-width: 260px; max-width: 320px; box-sizing: border-box;">
+              <div style="font-size: 14px; font-weight: 700; color: #ffffff; margin-bottom: 6px; border-bottom: 1px solid #334155; padding-bottom: 6px; display: flex; justify-content: space-between; align-items: center;">
+                <span>${pinTitle}</span>
+                <span style="font-size: 10px; padding: 2px 8px; border-radius: 9999px; font-weight: 800; background: ${cfg.fillColor}25; color: ${cfg.fillColor}; border: 1px solid ${cfg.fillColor}80;">
+                  ${tier}
+                </span>
+              </div>
+              <div style="font-size: 12px; line-height: 1.5; color: #cbd5e1; margin-bottom: 8px;">
+                <div style="margin-bottom: 6px; font-weight: 700; color: #38bdf8;">
+                  พิกัดที่เลือก | Peak Rain: ${peakRain} mm/hr | Risk: [${tier}]
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 11px; color: #94a3b8;">
+                  <span>ตำแหน่ง:</span>
+                  <strong style="color: #f1f5f9;">${lat.toFixed(4)}, ${lng.toFixed(4)}</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 11px; color: #94a3b8; margin-top: 3px;">
+                  <span>รัศมีผลกระทบ:</span>
+                  <strong style="color: ${cfg.fillColor};">${(cfg.radius / 1000).toFixed(1)} กม.</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 11px; color: #94a3b8; margin-top: 3px;">
+                  <span>สะสม 3 ชม. สูงสุด:</span>
+                  <strong style="color: #38bdf8;">${cum3hr} มม.</strong>
+                </div>
+                <div style="margin-top: 6px; padding-top: 6px; border-top: 1px solid #1e293b; font-size: 11px; color: #cbd5e1; line-height: 1.35;">
+                  <strong style="color: #94a3b8;">คำแนะนำ:</strong> ${data.action_text || data.action_th}
+                </div>
+              </div>
+            </div>
+          `;
+
+          gmap.panTo({ lat: lat - 0.012, lng: lng });
+          gmapInfoWindow.setContent(customInfoWindowHtml);
+          gmapInfoWindow.open({
+            map: gmap,
+            anchor: customPinMarker,
+            shouldFocus: false
+          });
+
+          // Re-open on click
+          customPinCircle.addListener('click', (e) => {
+            if (e && e.stop) e.stop();
+            gmapInfoWindow.open({ map: gmap, anchor: customPinMarker, shouldFocus: false });
+          });
+          customPinMarker.addListener('click', (e) => {
+            if (e && e.stop) e.stop();
+            gmapInfoWindow.open({ map: gmap, anchor: customPinMarker, shouldFocus: false });
+          });
+        }
+
+        // Also support Leaflet if user is viewing Leaflet Dark
+        if (map) {
+          const rad = cfg.radius;
+          customLeafletCircle = L.circle([lat, lng], {
+            color: cfg.strokeColor,
+            fillColor: cfg.fillColor,
+            fillOpacity: cfg.fillOpacity,
+            radius: rad,
+            weight: 3.5,
+            dashArray: '3, 3'
+          }).addTo(map);
+
+          const lMarkerHtml = `
+            <div class="relative flex items-center justify-center cursor-pointer">
+              <span class="relative inline-flex items-center justify-center rounded-full h-7 w-7 border-2 border-white shadow-xl text-sm font-bold" style="background-color: ${cfg.fillColor}; color: #fff;">
+                📍
+              </span>
+            </div>
+          `;
+          const customLeafletIcon = L.divIcon({
+            className: 'custom-pin-marker',
+            html: lMarkerHtml,
+            iconSize: [28, 28],
+            iconAnchor: [14, 14]
+          });
+          customLeafletMarker = L.marker([lat, lng], { icon: customLeafletIcon }).addTo(map);
+
+          const lPopupHtml = `
+            <div class="min-w-[240px] text-slate-100 font-sans">
+              <div class="flex items-center justify-between border-b border-slate-700 pb-2 mb-2">
+                <span class="font-bold text-sm text-white">${isCurrentLocation ? '📍 ตำแหน่งปัจจุบัน' : '📍 พิกัดที่เลือก'}</span>
+                <span class="text-[10px] px-2 py-0.5 rounded font-black tracking-wide" style="background-color: ${cfg.fillColor}25; color: ${cfg.fillColor}; border: 1px solid ${cfg.fillColor}60;">
+                  ${tier}
+                </span>
+              </div>
+              <div class="space-y-1.5 text-xs text-slate-300">
+                <div class="font-bold text-sky-400">
+                  พิกัดที่เลือก | Peak Rain: ${(data.peak_rain_mm || data.peak_hourly || 0).toFixed(1)} mm/hr | Risk: [${tier}]
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-slate-400">ตำแหน่ง:</span>
+                  <strong>${lat.toFixed(4)}, ${lng.toFixed(4)}</strong>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-slate-400">รัศมีผลกระทบ:</span>
+                  <strong style="color: ${cfg.fillColor};">${(rad / 1000).toFixed(1)} กม.</strong>
+                </div>
+                <div class="pt-1.5 border-t border-slate-800 text-[11px] text-slate-300">
+                  <span class="text-slate-400 font-medium">คำแนะนำ:</span> ${data.action_text || data.action_th}
+                </div>
+              </div>
+            </div>
+          `;
+          customLeafletMarker.bindPopup(lPopupHtml, { maxWidth: 280, autoPan: true });
+          customLeafletCircle.bindPopup(lPopupHtml, { maxWidth: 280, autoPan: true });
+          customLeafletMarker.openPopup();
+        }
+
+        // 5. Instantly update the EXISTING 24-Hour Rainfall Chart and the EXISTING Hourly Timeline Cards
+        cachedData = data;
+        renderDashboard(data);
+
+      } catch (err) {
+        console.error("Custom pin analysis error:", err);
+        if (bannerTitle) bannerTitle.textContent = "ไม่สามารถเชื่อมต่อระบบวิเคราะห์พิกัดได้";
+      } finally {
+        if (refreshIcon) refreshIcon.classList.remove('animate-spin');
+      }
+    }
+
+    // Feature: Use My Current Location via HTML5 Geolocation API
+    function useCurrentLocation() {
+      const btn = document.getElementById('btn-use-location');
+      const origHtml = btn ? btn.innerHTML : '';
+
+      if (!navigator.geolocation) {
+        alert("เบราว์เซอร์ของคุณไม่รองรับ Geolocation API");
+        return;
+      }
+
+      if (btn) {
+        btn.innerHTML = `<span class="animate-spin inline-block">⏳</span> <span>กำลังระบุพิกัด...</span>`;
+        btn.disabled = true;
+      }
+
+      const bannerTitle = document.getElementById('banner-title');
+      if (bannerTitle) bannerTitle.textContent = "กำลังค้นหาตำแหน่ง GPS ปัจจุบันของคุณ...";
+
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          if (btn) {
+            btn.innerHTML = origHtml;
+            btn.disabled = false;
+          }
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+
+          // Pan & zoom map to user's GPS coordinates
+          if (currentMapProvider === 'google' && gmap) {
+            gmap.panTo({ lat: lat - 0.012, lng: lng });
+            gmap.setZoom(13);
+          } else if (map) {
+            map.flyTo([lat, lng], 13);
+          }
+
+          await handleMapLocationClick(lat, lng, true);
+        },
+        async (error) => {
+          console.warn("Geolocation warning:", error);
+          if (btn) {
+            btn.innerHTML = origHtml;
+            btn.disabled = false;
+          }
+          // Sensible Bangkok center fallback (Siam / Pathum Wan) if GPS is denied in headless/virtual environments
+          const fallbackLat = 13.7460;
+          const fallbackLng = 100.5340;
+          if (bannerTitle) bannerTitle.textContent = "ไม่พบสัญญาณ GPS จำลองตำแหน่งใจกลาง กทม. (สยาม / ราชประสงค์)...";
+          if (currentMapProvider === 'google' && gmap) {
+            gmap.panTo({ lat: fallbackLat - 0.012, lng: fallbackLng });
+            gmap.setZoom(13);
+          } else if (map) {
+            map.flyTo([fallbackLat, fallbackLng], 13);
+          }
+          await handleMapLocationClick(fallbackLat, fallbackLng, true);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 7000,
+          maximumAge: 0
+        }
+      );
     }
 
     // Render geographic radius circles and center markers for Leaflet (Fallback/Alternative)
@@ -1659,6 +1982,26 @@
     // Location selection with smooth Google Maps and Leaflet sync
     function selectLocation(locId, shouldFly = true) {
       selectedLocationId = locId;
+
+      // Clean up any custom pin when selecting a predefined zone
+      if (customPinCircle) {
+        customPinCircle.setMap(null);
+        customPinCircle = null;
+      }
+      if (customPinMarker) {
+        customPinMarker.setMap(null);
+        customPinMarker = null;
+      }
+      if (map && customLeafletCircle) {
+        map.removeLayer(customLeafletCircle);
+        customLeafletCircle = null;
+      }
+      if (map && customLeafletMarker) {
+        map.removeLayer(customLeafletMarker);
+        customLeafletMarker = null;
+      }
+      currentCustomPin = null;
+
       updateActiveLocationCard(locId);
       fetchForecastData();
 
@@ -1740,7 +2083,11 @@
 
       // Redraw both Google Maps and Leaflet circles dynamically
       fetchAndRenderMapZones(scenarioId);
-      fetchForecastData();
+      if (currentCustomPin) {
+        handleMapLocationClick(currentCustomPin.lat, currentCustomPin.lng);
+      } else {
+        fetchForecastData();
+      }
     }
 
     function switchToLiveMode() {
@@ -1758,7 +2105,11 @@
 
       // Redraw maps with live Open-Meteo data
       fetchAndRenderMapZones(null);
-      fetchForecastData();
+      if (currentCustomPin) {
+        handleMapLocationClick(currentCustomPin.lat, currentCustomPin.lng);
+      } else {
+        fetchForecastData();
+      }
     }
 
     function updateSimulationButtons(activeId) {
@@ -1826,6 +2177,15 @@
             }
           }
         }, 1200);
+      }
+
+      // URL query params support for custom pin (e.g. ?lat=13.85&lon=100.48)
+      const pinLat = params.get('pin_lat') || params.get('lat');
+      const pinLon = params.get('pin_lon') || params.get('lon');
+      if (pinLat && pinLon) {
+        setTimeout(() => {
+          handleMapLocationClick(parseFloat(pinLat), parseFloat(pinLon));
+        }, 900);
       }
     });
   </script>

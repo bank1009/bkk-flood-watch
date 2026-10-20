@@ -158,6 +158,211 @@ def api_tiers():
     })
 
 
+@app.route("/api/check-location")
+def api_check_location():
+    """
+    Dynamic Coordinate API Endpoint (Drop a Pin):
+    Accepts lat and lon query parameters, fetches Open-Meteo real-time 24h forecast,
+    runs BMA Drainage flood risk evaluation, and returns location-specific risk metrics.
+    Supports optional ?scenario= override for Simulation Mode testing.
+    """
+    lat_str = request.args.get("lat", None)
+    lon_str = request.args.get("lon", None)
+    scenario_id = request.args.get("scenario", None)
+
+    if lat_str is None or lon_str is None:
+        return jsonify({
+            "success": False,
+            "error": "Query parameters 'lat' and 'lon' are required."
+        }), 400
+
+    try:
+        lat = float(lat_str)
+        lon = float(lon_str)
+    except (ValueError, TypeError):
+        return jsonify({
+            "success": False,
+            "error": "Query parameters 'lat' and 'lon' must be valid floating point numbers."
+        }), 400
+
+    if not (-90.0 <= lat <= 90.0 and -180.0 <= lon <= 180.0):
+        return jsonify({
+            "success": False,
+            "error": "Latitude must be between -90 and 90, and longitude between -180 and 180."
+        }), 400
+
+    now_bkk = datetime.now(BKK_TZ)
+    now_str = now_bkk.strftime("%Y-%m-%dT%H:00")
+    is_simulation = bool(scenario_id and scenario_id in SIMULATION_SCENARIOS)
+
+    if is_simulation:
+        scenario = SIMULATION_SCENARIOS[scenario_id]
+        base_precip = scenario["precipitation"]
+        precip_slice = [round(val, 1) for val in base_precip]
+        times_slice = [(now_bkk + timedelta(hours=i)).strftime("%Y-%m-%dT%H:00") for i in range(24)]
+
+        analysis = analyze_series(precip_slice, times_slice, window_hours=24)
+        risk_6h = analysis["next_6h_risk"]
+        tier_code = risk_6h["code"]
+        rad_cfg = RADIUS_TIER_CONFIG[tier_code]
+
+        if tier_code == "RED":
+            temp = 25.5
+            humidity = 95
+            precip_prob = 98
+            wcode = 96
+        elif tier_code == "ORANGE":
+            temp = 27.0
+            humidity = 88
+            precip_prob = 85
+            wcode = 65
+        elif tier_code == "YELLOW":
+            temp = 28.5
+            humidity = 80
+            precip_prob = 65
+            wcode = 63
+        else:
+            temp = 32.5
+            humidity = 60
+            precip_prob = 20
+            wcode = 1
+
+        w_info = get_weather_info(wcode)
+        temp_series = [round(temp + 2.0 - (p * 0.1), 1) for p in precip_slice]
+        humidity_series = [min(99, int(humidity + (p * 0.4))) for p in precip_slice]
+        precip_prob_series = [min(100, int(30 + p * 1.5)) if p > 0 else 15 for p in precip_slice]
+        wcode_series = [wcode if p > 5 else (61 if p > 0 else 1) for p in precip_slice]
+    else:
+        raw_data = fetch_open_meteo_forecast(lat, lon)
+        if not raw_data or "hourly" not in raw_data:
+            raw_data = generate_fallback_forecast(now_bkk)
+
+        hourly = raw_data.get("hourly", {})
+        all_times = hourly.get("time", [])
+        all_precip = hourly.get("precipitation", [])
+        all_precip_prob = hourly.get("precipitation_probability", [])
+        all_temp = hourly.get("temperature_2m", [])
+        all_humidity = hourly.get("relative_humidity_2m", [])
+        all_wcode = hourly.get("weathercode", [])
+
+        start_idx = 0
+        for idx, t in enumerate(all_times):
+            if t >= now_str:
+                start_idx = idx
+                break
+
+        end_idx = min(start_idx + 24, len(all_times))
+        times_slice = all_times[start_idx:end_idx]
+        precip_slice = all_precip[start_idx:end_idx]
+        precip_prob_series = all_precip_prob[start_idx:end_idx] if all_precip_prob else [0] * len(times_slice)
+        temp_series = all_temp[start_idx:end_idx] if all_temp else [30.0] * len(times_slice)
+        humidity_series = all_humidity[start_idx:end_idx] if all_humidity else [70] * len(times_slice)
+        wcode_series = all_wcode[start_idx:end_idx] if all_wcode else [0] * len(times_slice)
+
+        while len(precip_slice) < 24:
+            future_dt = now_bkk + timedelta(hours=len(times_slice))
+            times_slice.append(future_dt.strftime("%Y-%m-%dT%H:00"))
+            precip_slice.append(0.0)
+            precip_prob_series.append(10)
+            temp_series.append(30.0)
+            humidity_series.append(70)
+            wcode_series.append(1)
+
+        analysis = analyze_series(precip_slice, times_slice, window_hours=24)
+        risk_6h = analysis["next_6h_risk"]
+        tier_code = risk_6h["code"]
+        rad_cfg = RADIUS_TIER_CONFIG[tier_code]
+
+        w_info = get_weather_info(wcode_series[0] if wcode_series else 0)
+
+    current_summary = {
+        "temperature": temp_series[0] if temp_series else 30.0,
+        "humidity": humidity_series[0] if humidity_series else 70,
+        "precipitation_probability": precip_prob_series[0] if precip_prob_series else 0,
+        "precipitation_current": precip_slice[0] if precip_slice else 0.0,
+        "weathercode": wcode_series[0] if wcode_series else 0,
+        "weather_desc_th": w_info["desc_th"],
+        "weather_desc_en": w_info["desc_en"],
+        "weather_icon": w_info["icon"],
+        "observed_at": times_slice[0] if times_slice else now_str,
+        "observed_at_formatted": format_time_label(times_slice[0] if times_slice else now_str)
+    }
+
+    custom_location = {
+        "id": "custom_pin",
+        "name_th": f"พิกัดที่เลือก ({lat:.4f}, {lon:.4f})",
+        "name_en": f"Selected Coordinates ({lat:.4f}, {lon:.4f})",
+        "lat": lat,
+        "lon": lon,
+        "hotspots": f"พิกัด ละติจูด {lat:.4f}, ลองจิจูด {lon:.4f} (วิเคราะห์สภาพอากาศเฉพาะจุด)",
+        "drainage_basin": "การประเมินอิงข้อมูลพยากรณ์ Open-Meteo ร่วมกับเกณฑ์ระบายน้ำ กทม."
+    }
+
+    # Full 24-hour hourly forecast array with time, precipitation, cumulative_3hr_mm, risk_tier
+    hourly_forecast = []
+    for i in range(len(times_slice)):
+        hourly_forecast.append({
+            "time": times_slice[i],
+            "time_formatted": format_time_label(times_slice[i]),
+            "precipitation": precip_slice[i],
+            "cumulative_3hr_mm": analysis["rolling_3hr"][i],
+            "risk_tier": analysis["hourly_breakdown"][i]["risk_code"]
+        })
+
+    # Overall peak summary
+    peak_summary = {
+        "peak_rain_mm": analysis["peak_hourly"],
+        "peak_time": analysis["peak_time"],
+        "peak_time_formatted": analysis["peak_time_formatted"],
+        "cumulative_3hr_mm": analysis["max_3hr_cumulative"],
+        "total_rain_24h": analysis["total_rain_24h"],
+        "risk_tier": tier_code,
+        "action_text": risk_6h["action_th"]
+    }
+
+    return jsonify({
+        "success": True,
+        "is_simulation": is_simulation,
+        "lat": lat,
+        "lon": lon,
+        "peak_summary": peak_summary,
+        "hourly_forecast": hourly_forecast,
+        "peak_rain_mm": analysis["peak_hourly"],
+        "peak_hourly": analysis["peak_hourly"],
+        "peak_time_formatted": analysis["peak_time_formatted"],
+        "peak_6h_hourly": analysis["peak_6h_hourly"],
+        "peak_6h_time_formatted": analysis["peak_6h_time_formatted"],
+        "cumulative_3hr_mm": analysis["max_3hr_cumulative"],
+        "max_3hr_cumulative": analysis["max_3hr_cumulative"],
+        "total_rain_24h": analysis["total_rain_24h"],
+        "risk_tier": tier_code,
+        "risk_level": risk_6h["level"],
+        "risk_color": rad_cfg["color"],
+        "risk_title_th": risk_6h["title_th"],
+        "status_name": risk_6h["status_name"],
+        "action_text": risk_6h["action_th"],
+        "action_th": risk_6h["action_th"],
+        "banner_message": analysis["banner_message"],
+        "radius_meters": rad_cfg["radius_meters"],
+        "fill_opacity": rad_cfg["fill_opacity"],
+        "animation": rad_cfg["animation"],
+        "location": custom_location,
+        "current": current_summary,
+        "analysis": analysis,
+        "forecast_series": {
+            "times": times_slice,
+            "times_formatted": [format_time_label(t) for t in times_slice],
+            "precipitation": precip_slice,
+            "precipitation_probability": precip_prob_series,
+            "temperature": temp_series,
+            "humidity": humidity_series,
+            "weathercode": wcode_series
+        },
+        "bma_limit": 60.0,
+        "timestamp": now_bkk.isoformat()
+    })
+
+
 # Radius Map Configuration
 RADIUS_TIER_CONFIG = {
     "GREEN": {

@@ -150,3 +150,77 @@ def test_api_all_zones_status_simulation_normal(client):
         assert z["radius_meters"] == 800
         assert z["fill_opacity"] == 0.2
 
+
+def test_api_check_location_missing_params(client):
+    """Test /api/check-location validation for missing or invalid parameters."""
+    # Missing both
+    res = client.get("/api/check-location")
+    assert res.status_code == 400
+    assert "required" in res.get_json()["error"]
+
+    # Missing lon
+    res2 = client.get("/api/check-location?lat=13.75")
+    assert res2.status_code == 400
+
+    # Invalid coordinates
+    res3 = client.get("/api/check-location?lat=invalid&lon=100.5")
+    assert res3.status_code == 400
+
+    # Out of range
+    res4 = client.get("/api/check-location?lat=95.0&lon=100.5")
+    assert res4.status_code == 400
+
+
+def test_api_check_location_live(client):
+    """Test /api/check-location returns dynamic coordinates analysis with required fields."""
+    res = client.get("/api/check-location?lat=13.8500&lon=100.4800")
+    assert res.status_code == 200
+    data = res.get_json()
+    assert data["success"] is True
+    assert data["lat"] == 13.85
+    assert data["lon"] == 100.48
+    assert "peak_rain_mm" in data
+    assert "cumulative_3hr_mm" in data
+    assert "risk_tier" in data
+    assert data["risk_tier"] in ["GREEN", "YELLOW", "ORANGE", "RED"]
+    assert "action_text" in data
+    assert "radius_meters" in data
+    assert "forecast_series" in data
+    assert len(data["forecast_series"]["precipitation"]) == 24
+    assert "hourly_forecast" in data
+    assert len(data["hourly_forecast"]) == 24
+    for h in data["hourly_forecast"]:
+        assert "time" in h
+        assert "precipitation" in h
+        assert "cumulative_3hr_mm" in h
+        assert "risk_tier" in h
+    assert "peak_summary" in data
+    assert "peak_rain_mm" in data["peak_summary"]
+    assert "cumulative_3hr_mm" in data["peak_summary"]
+    assert "risk_tier" in data["peak_summary"]
+
+
+def test_api_check_location_simulation_extreme(client):
+    """Test /api/check-location with scenario=extreme returns RED tier and 3500m radius."""
+    res = client.get("/api/check-location?lat=13.8500&lon=100.4800&scenario=extreme")
+    assert res.status_code == 200
+    data = res.get_json()
+    assert data["success"] is True
+    assert data["is_simulation"] is True
+    assert data["risk_tier"] == "RED"
+    assert data["radius_meters"] == 3500
+    assert data["peak_rain_mm"] >= 60.0
+    assert "วิกฤต" in data["action_text"]
+
+
+def test_api_check_location_simulation_normal(client):
+    """Test /api/check-location with scenario=normal returns GREEN tier and 800m radius."""
+    res = client.get("/api/check-location?lat=13.8500&lon=100.4800&scenario=normal")
+    assert res.status_code == 200
+    data = res.get_json()
+    assert data["success"] is True
+    assert data["risk_tier"] == "GREEN"
+    assert data["radius_meters"] == 800
+    assert data["peak_rain_mm"] < 10.0
+
+
