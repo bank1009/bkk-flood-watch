@@ -34,11 +34,11 @@ app.json.sort_keys = False
 BKK_TZ = timezone(timedelta(hours=7))
 
 
-def clamp_coordinates(coords, min_lat: float = 13.44):
+def clamp_coordinates(coords, min_lat: float = 13.475):
     """
     Recursively clamp GeoJSON coordinates so that latitude (index 1) does not dip below min_lat.
-    GeoJSON coordinates are [lon, lat]. Clamping flattens the polygon along the coastline at 13.44
-    (Bang Khun Thian coastline) and removes the sharp maritime claim spike extending into the Gulf of Thailand.
+    GeoJSON coordinates are [lon, lat]. Clamping flattens the polygon along the coastline at 13.475
+    (Bang Khun Thian southernmost land edge) and removes any maritime spike into the Gulf of Thailand.
     """
     if not isinstance(coords, list):
         return coords
@@ -52,16 +52,16 @@ def clamp_coordinates(coords, min_lat: float = 13.44):
 
 def ensure_bangkok_boundary_geojson(force: bool = False) -> str:
     """
-    Checks if static/bangkok_boundary.geojson exists and is cleaned with 13.44 coastline threshold.
+    Checks if static/bangkok_boundary.geojson exists and is cleaned with 13.475 coastline threshold.
     If not (or if force=True), fetches the official administrative boundary polygon from Nominatim API,
-    clamps coordinates to min latitude 13.44 so the boundary accurately touches the Gulf of Thailand,
+    clamps coordinates to min latitude 13.475 so the boundary perfectly aligns with Bangkok's southern land edge,
     wraps it in a valid GeoJSON FeatureCollection structure, and saves it.
     """
     static_dir = os.path.join(os.path.dirname(__file__), "static")
     os.makedirs(static_dir, exist_ok=True)
     geojson_path = os.path.join(static_dir, "bangkok_boundary.geojson")
 
-    # If file exists, verify that it has been cleaned with the accurate coastline threshold (min_lat == 13.44)
+    # If file exists, verify that it has been cleaned with the accurate coastline threshold (min_lat == 13.475)
     if not force and os.path.exists(geojson_path) and os.path.getsize(geojson_path) > 1000:
         try:
             with open(geojson_path, "r", encoding="utf-8") as f:
@@ -74,13 +74,13 @@ def ensure_bangkok_boundary_geojson(force: bool = False) -> str:
                     for x in c:
                         _collect_lats(x)
             _collect_lats(cached["features"][0]["geometry"]["coordinates"])
-            if lats and abs(min(lats) - 13.44) < 0.001:
+            if lats and abs(min(lats) - 13.475) < 0.001:
                 return geojson_path
-            logger.info("Existing bangkok_boundary.geojson has min lat %.4f (expected 13.44). Re-generating...", min(lats))
+            logger.info("Existing bangkok_boundary.geojson has min lat %.4f (expected 13.475). Re-generating...", min(lats))
         except Exception as e:
             logger.warning("Error inspecting cached boundary: %s", e)
 
-    logger.info("Fetching and cleaning Bangkok administrative boundary from Nominatim API with min_lat=13.44...")
+    logger.info("Fetching and cleaning Bangkok administrative boundary from Nominatim API with min_lat=13.475...")
     try:
         url = "https://nominatim.openstreetmap.org/search?state=Bangkok&country=Thailand&polygon_geojson=1&format=jsonv2"
         headers = {"User-Agent": "BKKFloodWatch/1.0 (contact@bkkfloodwatch.local)"}
@@ -89,9 +89,9 @@ def ensure_bangkok_boundary_geojson(force: bool = False) -> str:
         data = resp.json()
         if data and isinstance(data, list) and len(data) > 0 and data[0].get("geojson"):
             raw_geojson = data[0]["geojson"]
-            # Clean coordinates by clamping latitude to 13.44 to touch the Gulf of Thailand coastline
+            # Clean coordinates by clamping latitude to 13.475 to align with Gulf of Thailand coastline
             if "coordinates" in raw_geojson:
-                raw_geojson["coordinates"] = clamp_coordinates(raw_geojson["coordinates"], min_lat=13.44)
+                raw_geojson["coordinates"] = clamp_coordinates(raw_geojson["coordinates"], min_lat=13.475)
 
             feature_collection = {
                 "type": "FeatureCollection",

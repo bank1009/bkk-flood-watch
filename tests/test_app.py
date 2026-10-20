@@ -237,7 +237,7 @@ def test_bangkok_boundary_geojson_endpoint(client):
     assert feature["geometry"]["type"] in ["Polygon", "MultiPolygon"]
     assert len(feature["geometry"]["coordinates"]) > 0
 
-    # Verify no coordinates dip below 13.44 into the Gulf of Thailand
+    # Verify no coordinates dip below 13.475 into the Gulf of Thailand
     lats = []
     def _collect(coords):
         if len(coords) >= 2 and isinstance(coords[0], (int, float)):
@@ -246,7 +246,7 @@ def test_bangkok_boundary_geojson_endpoint(client):
             for c in coords:
                 _collect(c)
     _collect(feature["geometry"]["coordinates"])
-    assert min(lats) == 13.44
+    assert min(lats) == 13.475
 
 
 def test_ensure_bangkok_boundary_geojson_helper():

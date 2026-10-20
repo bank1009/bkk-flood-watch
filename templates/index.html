@@ -1268,7 +1268,7 @@
 
       // Load official administrative boundary of Bangkok (Red Outline) - Professional GIS Standard
       try {
-        gmap.data.loadGeoJson('/static/bangkok_boundary.geojson?v=' + new Date().getTime(), null, function(features) {
+        gmap.data.loadGeoJson('/static/bangkok_boundary.geojson?v=' + Date.now(), null, function(features) {
           window.bkkBoundaryLoaded = true;
           console.log('Bangkok GeoJSON boundary loaded successfully:', features ? features.length : 0, 'features');
         });
@@ -1348,7 +1348,7 @@
       });
 
       // Load official administrative boundary of Bangkok (Red Outline) for Leaflet
-      fetch('/static/bangkok_boundary.geojson?v=' + new Date().getTime())
+      fetch('/static/bangkok_boundary.geojson?v=' + Date.now())
         .then(res => res.json())
         .then(geojson => {
           L.geoJSON(geojson, {
