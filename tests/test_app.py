@@ -267,3 +267,52 @@ def test_footer_email_attribution(client):
     assert 'href="mailto:chavalit.tira@gmail.com"' in html
 
 
+def test_ai_insight_in_check_location(client):
+    """Test that /api/check-location includes ai_insight in the response."""
+    res = client.get("/api/check-location?lat=13.816&lon=100.561")
+    assert res.status_code == 200
+    data = res.get_json()
+    assert "ai_insight" in data
+    assert isinstance(data["ai_insight"], str)
+    assert len(data["ai_insight"]) > 0
+
+
+def test_ai_insight_in_all_zones_status(client):
+    """Test that /api/all-zones-status includes ai_insight in the response."""
+    res = client.get("/api/all-zones-status")
+    assert res.status_code == 200
+    data = res.get_json()
+    assert "ai_insight" in data
+    assert isinstance(data["ai_insight"], str)
+    assert len(data["ai_insight"]) > 0
+
+
+def test_ai_insight_card_in_ui(client):
+    """Test that dashboard HTML contains the ✨ AI Flood Analysis card."""
+    res = client.get("/")
+    assert res.status_code == 200
+    html = res.data.decode("utf-8")
+    assert "ai-insight-card" in html
+    assert "AI Flood Analysis" in html
+    assert "Google Gemini" in html
+    assert "กำลังให้ AI วิเคราะห์ข้อมูล..." in html
+    assert "ai-loading-skeleton" in html
+    assert "ai-insight-text" in html
+
+
+def test_ai_analyzer_fallback():
+    """Test that ai_analyzer returns fallback string when API key is missing."""
+    import os
+    from ai_analyzer import generate_flood_insight, DEFAULT_FALLBACK
+    old_key = os.environ.get("GEMINI_API_KEY")
+    try:
+        os.environ["GEMINI_API_KEY"] = " "
+        res = generate_flood_insight("Test District", 10.0, 15.0, "GREEN")
+        assert res == DEFAULT_FALLBACK
+    finally:
+        if old_key is not None:
+            os.environ["GEMINI_API_KEY"] = old_key
+        else:
+            os.environ.pop("GEMINI_API_KEY", None)
+
+

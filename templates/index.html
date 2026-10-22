@@ -442,6 +442,51 @@
       </div>
     </section>
 
+    <!-- 5. ✨ AI FLOOD ANALYSIS (Google Gemini) -->
+    <section id="ai-insight-card" class="relative overflow-hidden rounded-2xl p-[1px] bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 shadow-lg shadow-indigo-500/10">
+      <div class="bg-slate-900/95 backdrop-blur-md rounded-2xl p-5 sm:p-6 space-y-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-2.5">
+            <span class="text-xl sm:text-2xl animate-pulse">✨</span>
+            <div>
+              <div class="flex items-center gap-2">
+                <h3 class="text-base font-bold text-white">AI Flood Analysis</h3>
+                <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/40">
+                  Google Gemini
+                </span>
+              </div>
+              <p class="text-xs text-slate-400 mt-0.5">วิเคราะห์โอกาสและสาเหตุหลักการเกิดน้ำท่วมขังเฉพาะจุดด้วยระบบ Generative AI</p>
+            </div>
+          </div>
+          <div id="ai-status-badge" class="hidden sm:inline-flex items-center gap-1.5 text-xs text-indigo-300 bg-indigo-950/60 px-2.5 py-1 rounded-full border border-indigo-700/50">
+            <span class="w-2 h-2 rounded-full bg-indigo-400 animate-ping"></span>
+            <span id="ai-status-text">Gemini 1.5 Flash</span>
+          </div>
+        </div>
+
+        <!-- AI Content Box -->
+        <div class="pt-1">
+          <!-- Loading Skeleton -->
+          <div id="ai-loading-skeleton" class="space-y-2 py-1">
+            <div class="flex items-center space-x-2.5 text-xs text-indigo-300 font-medium">
+              <svg class="animate-spin h-4 w-4 text-indigo-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              <span class="animate-pulse">กำลังให้ AI วิเคราะห์ข้อมูล...</span>
+            </div>
+            <div class="h-3 bg-slate-800 rounded animate-pulse w-full"></div>
+            <div class="h-3 bg-slate-800 rounded animate-pulse w-4/5"></div>
+          </div>
+
+          <!-- Dynamic Text Result -->
+          <p id="ai-insight-text" class="text-sm sm:text-base text-slate-200 leading-relaxed hidden">
+            <!-- Populated dynamically by Gemini -->
+          </p>
+        </div>
+      </div>
+    </section>
+
     <!-- 4. CURRENT WEATHER & METRIC CARDS -->
     <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       
@@ -861,6 +906,8 @@
     async function fetchForecastData() {
       const refreshIcon = document.getElementById('refresh-icon');
       if (refreshIcon) refreshIcon.classList.add('animate-spin');
+      setAiLoadingState(true);
+      setAiLoadingState(true);
 
       try {
         let url = `/api/forecast?location_id=${selectedLocationId}`;
@@ -891,6 +938,39 @@
       renderChart(data);
       renderHourlyTimeline(data);
       renderDistrictInfo(data.location);
+      renderAiInsight(data.ai_insight);
+    }
+
+    // ✨ Render AI Flood Insight (Google Gemini)
+    function renderAiInsight(insight) {
+      const skeleton = document.getElementById('ai-loading-skeleton');
+      const textEl = document.getElementById('ai-insight-text');
+      const badge = document.getElementById('ai-status-badge');
+      const statusText = document.getElementById('ai-status-text');
+
+      if (skeleton) skeleton.classList.add('hidden');
+      if (textEl) {
+        textEl.classList.remove('hidden');
+        textEl.textContent = insight || 'AI Analysis unavailable. Please configure API key.';
+      }
+      if (statusText) statusText.textContent = 'วิเคราะห์สำเร็จ';
+    }
+
+    // Set AI Loading State
+    function setAiLoadingState(isLoading) {
+      const skeleton = document.getElementById('ai-loading-skeleton');
+      const textEl = document.getElementById('ai-insight-text');
+      const statusText = document.getElementById('ai-status-text');
+
+      if (!skeleton || !textEl) return;
+      if (isLoading) {
+        skeleton.classList.remove('hidden');
+        textEl.classList.add('hidden');
+        if (statusText) statusText.textContent = 'กำลังวิเคราะห์...';
+      } else {
+        skeleton.classList.add('hidden');
+        textEl.classList.remove('hidden');
+      }
     }
 
     // 1. Render Summary Alert Banner
@@ -1629,6 +1709,7 @@
       const refreshIcon = document.getElementById('refresh-icon');
 
       if (refreshIcon) refreshIcon.classList.add('animate-spin');
+      setAiLoadingState(true);
 
       if (bannerTitle) {
         bannerTitle.textContent = isCurrentLocation 

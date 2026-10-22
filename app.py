@@ -22,6 +22,7 @@ from flood_engine import (
     analyze_series,
     format_time_label
 )
+from ai_analyzer import generate_flood_insight
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("bkk_flood_watch")
@@ -416,9 +417,18 @@ def api_check_location():
         "action_text": risk_6h["action_th"]
     }
 
+    # AI Flood Analysis Insight (Google Gemini)
+    ai_insight = generate_flood_insight(
+        custom_location["name_th"],
+        analysis["peak_hourly"],
+        analysis["max_3hr_cumulative"],
+        tier_code
+    )
+
     return jsonify({
         "success": True,
         "is_simulation": is_simulation,
+        "ai_insight": ai_insight,
         "lat": lat,
         "lon": lon,
         "peak_summary": peak_summary,
@@ -666,10 +676,23 @@ def api_all_zones_status():
     elif watch_count > 0:
         max_tier = "YELLOW"
 
+    # AI Flood Analysis Insight (Google Gemini) for Bangkok all-zones overview
+    top_zone = max(zones_result, key=lambda z: z["peak_hourly"]) if zones_result else None
+    if top_zone:
+        ai_insight = generate_flood_insight(
+            f"ภาพรวม 6 โซน กทม. (จุดเสี่ยงสูงสุด: {top_zone['name_th']})",
+            top_zone["peak_hourly"],
+            top_zone["cumulative_3hr_mm"],
+            top_zone["risk_tier"]
+        )
+    else:
+        ai_insight = generate_flood_insight("ภาพรวมกรุงเทพมหานคร", 0.0, 0.0, max_tier)
+
     return jsonify({
         "success": True,
         "is_simulation": is_simulation,
         "scenario": scenario_id if is_simulation else None,
+        "ai_insight": ai_insight,
         "zones": zones_result,
         "summary": {
             "total_zones": len(zones_result),
@@ -763,9 +786,17 @@ def api_forecast():
         "observed_at_formatted": format_time_label(times_slice[0] if times_slice else now_str)
     }
 
+    ai_insight = generate_flood_insight(
+        location["name_th"],
+        analysis["peak_hourly"],
+        analysis["max_3hr_cumulative"],
+        analysis["next_6h_risk"]["code"]
+    )
+
     return jsonify({
         "success": True,
         "is_simulation": False,
+        "ai_insight": ai_insight,
         "location": location,
         "current": current_summary,
         "analysis": analysis,
@@ -862,9 +893,17 @@ def api_simulate():
     humidity_series = [min(99, int(humidity + (p * 0.4))) for p in precip_slice]
     precip_prob_series = [min(100, int(30 + p * 1.5)) if p > 0 else 15 for p in precip_slice]
 
+    ai_insight = generate_flood_insight(
+        f"{location['name_th']} ({scenario.get('name_th', scenario_id)})",
+        analysis["peak_hourly"],
+        analysis["max_3hr_cumulative"],
+        analysis["next_6h_risk"]["code"]
+    )
+
     return jsonify({
         "success": True,
         "is_simulation": True,
+        "ai_insight": ai_insight,
         "scenario": scenario,
         "location": location,
         "current": current_summary,
