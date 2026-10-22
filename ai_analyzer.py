@@ -47,36 +47,54 @@ def get_api_key() -> Optional[str]:
     return None
 
 
-def generate_flood_insight(location_name: str, peak_rain: float, cumulative_3hr: float, risk_tier: str) -> str:
+def generate_flood_insight(
+    location_name: str,
+    peak_rain: float,
+    cumulative_3hr: float,
+    risk_tier: str,
+    lang: str = "th"
+) -> str:
     """
-    Generates a natural-language flood risk explanation in Thai using Google Gemini.
+    Generates a natural-language flood risk explanation in Thai or English using Google Gemini.
 
     Args:
         location_name: Name of the monitored district or selected coordinates.
         peak_rain: Peak hourly rainfall rate in mm/hr.
         cumulative_3hr: Maximum 3-hour cumulative rainfall in mm.
         risk_tier: BMA drainage risk tier ('GREEN', 'YELLOW', 'ORANGE', 'RED').
+        lang: Target language ('th' or 'en', default 'th').
 
     Returns:
-        Concise 2-3 sentence analysis in Thai, or fallback message if unavailable.
+        Concise 2-3 sentence analysis in the requested language, or fallback message if unavailable.
     """
     api_key = get_api_key()
     if not api_key:
         logger.info("GEMINI_API_KEY not configured. Returning fallback.")
         return DEFAULT_FALLBACK
 
-    # Cache key based on input parameters
-    cache_key = f"{location_name}_{round(float(peak_rain), 1)}_{round(float(cumulative_3hr), 1)}_{risk_tier}"
+    target_lang = "en" if lang.lower() == "en" else "th"
+
+    # Cache key incorporating target language to avoid collisions
+    cache_key = f"{location_name}_{round(float(peak_rain), 1)}_{round(float(cumulative_3hr), 1)}_{risk_tier}_{target_lang}"
     if cache_key in _INSIGHT_CACHE:
         return _INSIGHT_CACHE[cache_key]
 
-    prompt = (
-        f"You are a professional Bangkok flood risk analyst. "
-        f"Based on the following forecast for {location_name}: "
-        f"Peak Rain = {peak_rain:.1f} mm/hr, 3-Hr Cumulative = {cumulative_3hr:.1f} mm, and BMA System Status = {risk_tier}. "
-        f"Write a concise, 2-3 sentence analysis in Thai explaining the probability of flooding and the primary reason "
-        f"(e.g., heavy sudden downpour vs. prolonged accumulation). Keep the tone informative and helpful."
-    )
+    if target_lang == "en":
+        prompt = (
+            f"You are a professional Bangkok flood risk analyst. "
+            f"Based on the following forecast for {location_name}: "
+            f"Peak Rain = {peak_rain:.1f} mm/hr, 3-Hr Cumulative = {cumulative_3hr:.1f} mm, and BMA System Status = {risk_tier}. "
+            f"Write a concise, 2-3 sentence analysis in English explaining the probability of flooding and the primary reason "
+            f"(e.g., heavy sudden downpour vs. prolonged accumulation). Keep the tone informative and helpful."
+        )
+    else:
+        prompt = (
+            f"You are a professional Bangkok flood risk analyst. "
+            f"Based on the following forecast for {location_name}: "
+            f"Peak Rain = {peak_rain:.1f} mm/hr, 3-Hr Cumulative = {cumulative_3hr:.1f} mm, and BMA System Status = {risk_tier}. "
+            f"Write a concise, 2-3 sentence analysis in Thai explaining the probability of flooding and the primary reason "
+            f"(e.g., heavy sudden downpour vs. prolonged accumulation). Keep the tone informative and helpful."
+        )
 
     try:
         import google.generativeai as genai

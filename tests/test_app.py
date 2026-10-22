@@ -316,3 +316,57 @@ def test_ai_analyzer_fallback():
             os.environ.pop("GEMINI_API_KEY", None)
 
 
+def test_bilingual_check_location_en(client):
+    """Test that /api/check-location with lang=en returns English texts and risk titles."""
+    res = client.get("/api/check-location?lat=13.75&lon=100.5&lang=en")
+    assert res.status_code == 200
+    data = res.get_json()
+    assert data["success"] is True
+    assert data["lang"] == "en"
+    assert "Normal" in data["status_name"] or "Watch" in data["status_name"] or "Warning" in data["status_name"] or "Critical" in data["status_name"]
+    assert "action_en" in data
+    assert "action_th" in data
+    assert data["action_text"] == data["action_en"]
+    assert data["location"]["name_en"] is not None
+
+
+def test_bilingual_all_zones_status_en(client):
+    """Test that /api/all-zones-status with lang=en returns English zone data."""
+    res = client.get("/api/all-zones-status?lang=en")
+    assert res.status_code == 200
+    data = res.get_json()
+    assert data["success"] is True
+    assert data["lang"] == "en"
+    for z in data["zones"]:
+        assert "action_en" in z
+        assert "action_th" in z
+        assert z["action_text"] == z["action_en"]
+        assert "name_en" in z
+
+
+def test_bilingual_simulate_en(client):
+    """Test /api/simulate with lang=en returns English banner and action descriptions."""
+    res = client.get("/api/simulate?scenario=extreme&location_id=chatuchak&lang=en")
+    assert res.status_code == 200
+    data = res.get_json()
+    assert data["success"] is True
+    assert data["lang"] == "en"
+    assert data["analysis"]["overall_risk"]["code"] == "RED"
+    assert "Critical" in data["analysis"]["banner_message"]
+    assert "action_en" in data["analysis"]["overall_risk"]
+
+
+def test_bilingual_html_nav_toggle(client):
+    """Test that index.html contains the TH/EN language toggle buttons and i18n data keys."""
+    res = client.get("/")
+    assert res.status_code == 200
+    html = res.data.decode("utf-8")
+    assert 'id="lang-btn-th"' in html
+    assert 'id="lang-btn-en"' in html
+    assert 'data-i18n-key="header_subtitle"' in html
+    assert 'data-i18n-key="btn_use_location"' in html
+    assert 'TRANSLATIONS' in html
+    assert 'function setLanguage' in html
+
+
+

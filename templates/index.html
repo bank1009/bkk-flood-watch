@@ -202,26 +202,36 @@
               Developed by Bank Chavalit Tirakitti
             </span>
           </div>
-          <p class="text-xs text-slate-400 mt-0.5">ระบบคาดการณ์ปริมาณฝนและเฝ้าระวังน้ำท่วมขังตามเกณฑ์สำนักการระบายน้ำ กทม.</p>
+          <p data-i18n-key="header_subtitle" class="text-xs text-slate-400 mt-0.5">ระบบคาดการณ์ปริมาณฝนและเฝ้าระวังน้ำท่วมขังตามเกณฑ์สำนักการระบายน้ำ กทม.</p>
         </div>
       </div>
 
-      <div class="flex items-center space-x-3 text-xs sm:text-sm">
+      <div class="flex items-center space-x-2.5 sm:space-x-3 text-xs sm:text-sm">
+        <!-- Language Toggle Switch (TH / EN) -->
+        <div class="inline-flex items-center rounded-lg bg-slate-950 p-1 border border-slate-700/80 shadow-inner" role="group" aria-label="Language selector">
+          <button id="lang-btn-th" onclick="setLanguage('th')" class="px-2.5 py-1 text-xs font-bold rounded-md transition duration-200 bg-blue-600 text-white shadow-sm" title="ภาษาไทย">
+            TH
+          </button>
+          <button id="lang-btn-en" onclick="setLanguage('en')" class="px-2.5 py-1 text-xs font-bold rounded-md transition duration-200 text-slate-400 hover:text-white" title="English">
+            EN
+          </button>
+        </div>
+
         <div id="live-indicator" class="flex items-center space-x-2 px-3 py-1.5 rounded-full bg-slate-800 border border-slate-700 text-slate-300">
           <span class="relative flex h-2.5 w-2.5">
             <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
           </span>
-          <span id="live-status-text">ข้อมูลสด Open-Meteo</span>
+          <span id="live-status-text" data-i18n-key="live_openmeteo">ข้อมูลสด Open-Meteo</span>
         </div>
         
         <button onclick="toggleStandardsModal(true)" class="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 transition">
-          <span>ℹ️ เกณฑ์ กทม.</span>
+          <span data-i18n-key="nav_bma_standards">ℹ️ เกณฑ์ กทม.</span>
         </button>
 
         <button onclick="fetchForecastData()" class="flex items-center space-x-1 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-medium transition shadow-sm" title="รีเฟรชข้อมูล">
           <span id="refresh-icon">🔄</span>
-          <span class="hidden sm:inline">รีเฟรช</span>
+          <span data-i18n-key="nav_refresh" class="hidden sm:inline">รีเฟรช</span>
         </button>
       </div>
     </div>
@@ -239,7 +249,7 @@
           </div>
           <div>
             <div class="flex items-center space-x-2 mb-1">
-              <span id="banner-tag" class="text-xs px-2.5 py-0.5 rounded-full font-semibold uppercase tracking-wider bg-slate-800 text-slate-300 border border-slate-700">
+              <span id="banner-tag" data-i18n-key="banner_eval_tag" class="text-xs px-2.5 py-0.5 rounded-full font-semibold uppercase tracking-wider bg-slate-800 text-slate-300 border border-slate-700">
                 ประเมินความเสี่ยง 6 ชม. ข้างหน้า
               </span>
               <span id="banner-peak-time-tag" class="text-xs text-slate-400">
@@ -257,12 +267,12 @@
 
         <div class="flex items-center gap-3 w-full md:w-auto justify-between md:justify-end border-t md:border-t-0 pt-3 md:pt-0 border-slate-800">
           <div class="text-left md:text-right">
-            <div class="text-xs text-slate-400">ฝนสูงสุดใน 6 ชม.</div>
+            <div data-i18n-key="banner_peak_label" class="text-xs text-slate-400">ฝนสูงสุดใน 6 ชม.</div>
             <div id="banner-peak-val" class="text-2xl font-black text-white">-- <span class="text-xs font-normal text-slate-400">มม./ชม.</span></div>
           </div>
           <div class="h-8 w-px bg-slate-800"></div>
           <div class="text-left md:text-right">
-            <div class="text-xs text-slate-400">ศักยภาพท่อ กทม.</div>
+            <div data-i18n-key="banner_capacity_label" class="text-xs text-slate-400">ศักยภาพท่อ กทม.</div>
             <div class="text-2xl font-black text-rose-400">60 <span class="text-xs font-normal text-slate-400">มม./ชม.</span></div>
           </div>
         </div>
@@ -274,53 +284,53 @@
       <div class="flex flex-wrap items-center justify-between gap-2">
         <div class="flex items-center space-x-2">
           <span class="text-lg">🧪</span>
-          <h3 class="text-base font-bold text-white">โหมดจำลองสถานการณ์ฝนตก (Simulation Mode)</h3>
-          <span class="text-xs px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/30">ทดสอบ Rule Engine</span>
+          <h3 data-i18n-key="sim_heading" class="text-base font-bold text-white">โหมดจำลองสถานการณ์ฝนตก (Simulation Mode)</h3>
+          <span data-i18n-key="sim_tag" class="text-xs px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/30">ทดสอบ Rule Engine</span>
         </div>
-        <p class="text-xs text-slate-400">คลิกปุ่มเพื่อทดสอบการตอบสนองของระบบแจ้งเตือนตามเกณฑ์ กทม. ทุกระดับสี</p>
+        <p data-i18n-key="sim_desc" class="text-xs text-slate-400">คลิกปุ่มเพื่อทดสอบการตอบสนองของระบบแจ้งเตือนตามเกณฑ์ กทม. ทุกระดับสี</p>
       </div>
 
       <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 pt-1">
         <!-- Live Real-Time Button -->
         <button id="btn-mode-live" onclick="switchToLiveMode()" class="px-3 py-2.5 rounded-xl border font-medium text-xs sm:text-sm flex flex-col items-center justify-center gap-1 transition bg-blue-600 text-white border-blue-500 shadow-sm">
-          <span class="text-base">📡 ข้อมูลจริง</span>
-          <span class="text-[11px] text-blue-100">Live Forecast</span>
+          <span data-i18n-key="btn_sim_live" class="text-base">📡 ข้อมูลจริง</span>
+          <span data-i18n-key="btn_sim_live_sub" class="text-[11px] text-blue-100">Live Forecast</span>
         </button>
 
         <!-- Normal Simulation -->
         <button id="btn-sim-normal" onclick="runSimulation('normal')" class="px-3 py-2.5 rounded-xl border font-medium text-xs sm:text-sm flex flex-col items-center justify-center gap-1 transition bg-slate-800/80 hover:bg-slate-800 text-slate-200 border-slate-700">
-          <span class="text-base">🟢 สภาพปกติ</span>
-          <span class="text-[11px] text-emerald-400">ฝน &lt; 10 มม.</span>
+          <span data-i18n-key="btn_sim_normal" class="text-base">🟢 สภาพปกติ</span>
+          <span data-i18n-key="btn_sim_normal_sub" class="text-[11px] text-emerald-400">ฝน &lt; 10 มม.</span>
         </button>
 
         <!-- Watch 22mm Simulation -->
         <button id="btn-sim-watch" onclick="runSimulation('watch')" class="px-3 py-2.5 rounded-xl border font-medium text-xs sm:text-sm flex flex-col items-center justify-center gap-1 transition bg-slate-800/80 hover:bg-slate-800 text-slate-200 border-slate-700">
-          <span class="text-base">🟡 เฝ้าระวัง 22mm</span>
-          <span class="text-[11px] text-amber-400">ฝนรอระบาย 5-10 ซม.</span>
+          <span data-i18n-key="btn_sim_watch" class="text-base">🟡 เฝ้าระวัง 22mm</span>
+          <span data-i18n-key="btn_sim_watch_sub" class="text-[11px] text-amber-400">ฝนรอระบาย 5-10 ซม.</span>
         </button>
 
         <!-- Heavy 45mm Simulation -->
         <button id="btn-sim-heavy" onclick="runSimulation('heavy')" class="px-3 py-2.5 rounded-xl border font-medium text-xs sm:text-sm flex flex-col items-center justify-center gap-1 transition bg-slate-800/80 hover:bg-slate-800 text-slate-200 border-slate-700">
-          <span class="text-base">🟠 เตือนหนัก 45mm</span>
-          <span class="text-[11px] text-orange-400">ใกล้เต็มท่อ 60 มม.</span>
+          <span data-i18n-key="btn_sim_heavy" class="text-base">🟠 เตือนหนัก 45mm</span>
+          <span data-i18n-key="btn_sim_heavy_sub" class="text-[11px] text-orange-400">ใกล้เต็มท่อ 60 มม.</span>
         </button>
 
         <!-- Extreme 75mm Simulation -->
         <button id="btn-sim-extreme" onclick="runSimulation('extreme')" class="px-3 py-2.5 rounded-xl border font-medium text-xs sm:text-sm flex flex-col items-center justify-center gap-1 transition bg-slate-800/80 hover:bg-slate-800 text-slate-200 border-slate-700">
-          <span class="text-base">🔴 วิกฤต 75mm</span>
-          <span class="text-[11px] text-rose-400">เกินขีดความสามารถ</span>
+          <span data-i18n-key="btn_sim_extreme" class="text-base">🔴 วิกฤต 75mm</span>
+          <span data-i18n-key="btn_sim_extreme_sub" class="text-[11px] text-rose-400">เกินขีดความสามารถ</span>
         </button>
 
         <!-- Cumulative Red Simulation -->
         <button id="btn-sim-cumulative_red" onclick="runSimulation('cumulative_red')" class="px-3 py-2.5 rounded-xl border font-medium text-xs sm:text-sm flex flex-col items-center justify-center gap-1 transition bg-slate-800/80 hover:bg-slate-800 text-slate-200 border-slate-700">
-          <span class="text-base">🌊 ฝนแช่ &gt; 80mm</span>
-          <span class="text-[11px] text-rose-400">สะสม 3 ชม. วิกฤต</span>
+          <span data-i18n-key="btn_sim_cum" class="text-base">🌊 ฝนแช่ &gt; 80mm</span>
+          <span data-i18n-key="btn_sim_cum_sub" class="text-[11px] text-rose-400">สะสม 3 ชม. วิกฤต</span>
         </button>
       </div>
 
       <div id="sim-status-banner" class="hidden text-xs px-3 py-2 rounded-lg bg-purple-950/40 border border-purple-500/30 text-purple-300 flex items-center justify-between">
         <span id="sim-scenario-desc">⚠️ กำลังแสดงผลข้อมูลจำลองสถานการณ์</span>
-        <button onclick="switchToLiveMode()" class="underline font-semibold hover:text-white">กลับสู่ข้อมูลจริง</button>
+        <button onclick="switchToLiveMode()" data-i18n-key="sim_status_back" class="underline font-semibold hover:text-white">กลับสู่ข้อมูลจริง</button>
       </div>
     </section>
 
@@ -330,12 +340,12 @@
         <div>
           <div class="flex items-center space-x-2">
             <span class="text-lg">🗺️</span>
-            <h3 class="text-base font-bold text-white">แผนที่เรดาร์คาดการณ์รัศมีน้ำท่วมขัง (Interactive Flood Risk Radius Map)</h3>
+            <h3 data-i18n-key="map_heading" class="text-base font-bold text-white">แผนที่เรดาร์คาดการณ์รัศมีน้ำท่วมขัง (Interactive Flood Risk Radius Map)</h3>
             <span id="map-provider-badge" class="text-xs px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/30 font-medium">Google Maps Dark</span>
-            <span class="text-xs px-2 py-0.5 rounded-full bg-red-500/10 text-red-400 border border-red-500/30 font-medium">🚨 ขอบเขต กทม. (BKK Boundary)</span>
+            <span data-i18n-key="map_boundary_tag" class="text-xs px-2 py-0.5 rounded-full bg-red-500/10 text-red-400 border border-red-500/30 font-medium">🚨 ขอบเขต กทม. (BKK Boundary)</span>
           </div>
           <p class="text-xs text-slate-400 mt-0.5">
-            แสดงรัศมีผลกระทบคาดการณ์ 6 โซน กทม. | เส้นขอบแดง = เขตปกครองกรุงเทพฯ | <span class="text-blue-400 font-semibold">📍 คลิกบนแผนที่จุดใดก็ได้เพื่อปักหมุดวิเคราะห์น้ำท่วมเฉพาะจุด (Drop a Pin)</span>
+            <span data-i18n-key="map_sub_desc">แสดงรัศมีผลกระทบคาดการณ์ 6 โซน กทม. | เส้นขอบแดง = เขตปกครองกรุงเทพฯ | </span><span data-i18n-key="map_pin_hint" class="text-blue-400 font-semibold">📍 คลิกบนแผนที่จุดใดก็ได้เพื่อปักหมุดวิเคราะห์น้ำท่วมเฉพาะจุด (Drop a Pin)</span>
           </p>
         </div>
 
@@ -358,10 +368,10 @@
             <span id="badge-count-green" class="hidden px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-semibold">🟢 ปกติ 6</span>
           </div>
           <button id="btn-use-location" onclick="useCurrentLocation()" class="px-2.5 py-1 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs flex items-center gap-1 transition shadow-sm">
-            <span>📍 ใช้ตำแหน่งปัจจุบัน (Use My Current Location)</span>
+            <span data-i18n-key="btn_use_location">📍 ใช้ตำแหน่งปัจจุบัน (Use My Current Location)</span>
           </button>
           <button onclick="resetMapView()" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 text-xs flex items-center gap-1 transition">
-            <span>🎯 มุมมองทั้ง กทม.</span>
+            <span data-i18n-key="btn_reset_view">🎯 มุมมองทั้ง กทม.</span>
           </button>
         </div>
       </div>
@@ -377,22 +387,22 @@
         <div class="flex items-center space-x-2.5 p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
           <span class="w-3.5 h-3.5 rounded-full bg-emerald-500 flex-shrink-0"></span>
           <div>
-            <div class="font-bold text-emerald-400">🟢 ปกติ (รัศมี 800 ม.)</div>
-            <div class="text-[11px] text-slate-400">ฝน &lt; 10 มม. ระบายคล่องตัว</div>
+            <div data-i18n-key="legend_green_title" class="font-bold text-emerald-400">🟢 ปกติ (รัศมี 800 ม.)</div>
+            <div data-i18n-key="legend_green_desc" class="text-[11px] text-slate-400">ฝน &lt; 10 มม. ระบายคล่องตัว</div>
           </div>
         </div>
         <div class="flex items-center space-x-2.5 p-2 rounded-xl bg-amber-500/10 border border-amber-500/20">
           <span class="w-3.5 h-3.5 rounded-full bg-amber-500 flex-shrink-0"></span>
           <div>
-            <div class="font-bold text-amber-400">🟡 เฝ้าระวัง (รัศมี 1.5 กม.)</div>
-            <div class="text-[11px] text-slate-400">ฝน 10 - 35 มม. น้ำขัง 5-10 ซม.</div>
+            <div data-i18n-key="legend_yellow_title" class="font-bold text-amber-400">🟡 เฝ้าระวัง (รัศมี 1.5 กม.)</div>
+            <div data-i18n-key="legend_yellow_desc" class="text-[11px] text-slate-400">ฝน 10 - 35 มม. น้ำขัง 5-10 ซม.</div>
           </div>
         </div>
         <div class="flex items-center space-x-2.5 p-2 rounded-xl bg-orange-500/10 border border-orange-500/20">
           <span class="w-3.5 h-3.5 rounded-full bg-orange-500 flex-shrink-0"></span>
           <div>
-            <div class="font-bold text-orange-400">🟠 แจ้งเตือน (รัศมี 2.5 กม.)</div>
-            <div class="text-[11px] text-slate-400">ฝน 35.1 - 60 มม. ใกล้เต็มท่อ</div>
+            <div data-i18n-key="legend_orange_title" class="font-bold text-orange-400">🟠 แจ้งเตือน (รัศมี 2.5 กม.)</div>
+            <div data-i18n-key="legend_orange_desc" class="text-[11px] text-slate-400">ฝน 35.1 - 60 มม. ใกล้เต็มท่อ</div>
           </div>
         </div>
         <div class="flex items-center space-x-2.5 p-2 rounded-xl bg-rose-500/10 border border-rose-500/20">
@@ -401,8 +411,8 @@
             <span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-rose-500"></span>
           </span>
           <div>
-            <div class="font-bold text-rose-400">🔴 วิกฤตฉับพลัน (รัศมี 3.5 กม.)</div>
-            <div class="text-[11px] text-slate-400">ฝน &gt; 60 มม. เกินศักยภาพ กทม.</div>
+            <div data-i18n-key="legend_red_title" class="font-bold text-rose-400">🔴 วิกฤตฉับพลัน (รัศมี 3.5 กม.)</div>
+            <div data-i18n-key="legend_red_desc" class="text-[11px] text-slate-400">ฝน &gt; 60 มม. เกินศักยภาพ กทม.</div>
           </div>
         </div>
       </div>
@@ -413,9 +423,9 @@
       <div class="flex items-center justify-between">
         <div class="flex items-center space-x-2">
           <span class="text-lg">📍</span>
-          <h3 class="text-base font-bold text-white">เลือกจุดเฝ้าระวังน้ำท่วมขังสำคัญ 6 โซน กทม.</h3>
+          <h3 data-i18n-key="zones_heading" class="text-base font-bold text-white">เลือกจุดเฝ้าระวังน้ำท่วมขังสำคัญ 6 โซน กทม.</h3>
         </div>
-        <span class="text-xs text-slate-400">พิกัดทางยุทธศาสตร์การระบายน้ำ</span>
+        <span data-i18n-key="zones_sub" class="text-xs text-slate-400">พิกัดทางยุทธศาสตร์การระบายน้ำ</span>
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -423,19 +433,24 @@
         <div 
           onclick="selectLocation('{{ loc.id }}')" 
           id="loc-card-{{ loc.id }}"
+          data-loc-id="{{ loc.id }}"
+          data-name-th="{{ loc.name_th }}"
+          data-name-en="{{ loc.name_en }}"
+          data-hotspots-th="{{ loc.hotspots }}"
+          data-hotspots-en="{{ loc.hotspots_en|default(loc.hotspots) }}"
           class="location-card cursor-pointer p-4 rounded-xl border transition-all duration-200 bg-slate-900/70 hover:bg-slate-800/80 border-slate-800 relative overflow-hidden group">
           <div class="flex items-start justify-between">
             <div>
-              <div class="text-xs font-semibold text-blue-400 uppercase tracking-wider mb-0.5">โซนที่ {{ loop.index }}</div>
-              <h4 class="text-base font-bold text-white group-hover:text-blue-300 transition">{{ loc.name_th }}</h4>
-              <p class="text-xs text-slate-400 mt-0.5">{{ loc.name_en }}</p>
+              <div class="text-xs font-semibold text-blue-400 uppercase tracking-wider mb-0.5"><span class="zone-prefix-text" data-i18n-key="zone_prefix">โซนที่ </span>{{ loop.index }}</div>
+              <h4 class="text-base font-bold text-white group-hover:text-blue-300 transition loc-name-title">{{ loc.name_th }}</h4>
+              <p class="text-xs text-slate-400 mt-0.5 loc-name-sub">{{ loc.name_en }}</p>
             </div>
             <span class="text-xs px-2 py-1 rounded bg-slate-800 text-slate-400 font-mono">
               {{ loc.lat }}, {{ loc.lon }}
             </span>
           </div>
           <div class="mt-2.5 pt-2.5 border-t border-slate-800/80 text-[11px] text-slate-400 line-clamp-2">
-            <span class="text-slate-300 font-medium">จุดเสี่ยง:</span> {{ loc.hotspots }}
+            <span class="text-slate-300 font-medium zone-risk-label" data-i18n-key="zone_risk_label">จุดเสี่ยง:</span> <span class="loc-hotspots-text">{{ loc.hotspots }}</span>
           </div>
         </div>
         {% endfor %}
@@ -450,12 +465,12 @@
             <span class="text-xl sm:text-2xl animate-pulse">✨</span>
             <div>
               <div class="flex items-center gap-2">
-                <h3 class="text-base font-bold text-white">AI Flood Analysis</h3>
+                <h3 data-i18n-key="ai_heading" class="text-base font-bold text-white">AI Flood Analysis</h3>
                 <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/40">
                   Google Gemini
                 </span>
               </div>
-              <p class="text-xs text-slate-400 mt-0.5">วิเคราะห์โอกาสและสาเหตุหลักการเกิดน้ำท่วมขังเฉพาะจุดด้วยระบบ Generative AI</p>
+              <p data-i18n-key="ai_desc" class="text-xs text-slate-400 mt-0.5">วิเคราะห์โอกาสและสาเหตุหลักการเกิดน้ำท่วมขังเฉพาะจุดด้วยระบบ Generative AI</p>
             </div>
           </div>
           <div id="ai-status-badge" class="hidden sm:inline-flex items-center gap-1.5 text-xs text-indigo-300 bg-indigo-950/60 px-2.5 py-1 rounded-full border border-indigo-700/50">
@@ -473,7 +488,7 @@
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
-              <span class="animate-pulse">กำลังให้ AI วิเคราะห์ข้อมูล...</span>
+              <span id="ai-skeleton-text" data-i18n-key="ai_skeleton_loading" class="animate-pulse">กำลังให้ AI วิเคราะห์ข้อมูล...</span>
             </div>
             <div class="h-3 bg-slate-800 rounded animate-pulse w-full"></div>
             <div class="h-3 bg-slate-800 rounded animate-pulse w-4/5"></div>
@@ -493,7 +508,7 @@
       <!-- Card 1: 24h Risk Level -->
       <div class="bg-slate-900/80 p-5 rounded-2xl border border-slate-800 relative overflow-hidden">
         <div class="flex items-center justify-between text-xs text-slate-400 mb-2">
-          <span>ระดับความเสี่ยงภาพรวม 24 ชม.</span>
+          <span data-i18n-key="card1_title">ระดับความเสี่ยงภาพรวม 24 ชม.</span>
           <span id="metric-tier-badge" class="px-2 py-0.5 rounded-full text-xs font-bold bg-slate-800 text-slate-300">--</span>
         </div>
         <div class="flex items-baseline space-x-2">
@@ -503,7 +518,7 @@
           --
         </div>
         <div class="mt-2 text-[11px] text-slate-400 flex justify-between">
-          <span>สัดส่วนความจุท่อ กทม.:</span>
+          <span data-i18n-key="card1_pipe_ratio">สัดส่วนความจุท่อ กทม.:</span>
           <span id="metric-bma-pct" class="font-semibold text-slate-300">--</span>
         </div>
       </div>
@@ -511,15 +526,15 @@
       <!-- Card 2: Peak Hourly Rain -->
       <div class="bg-slate-900/80 p-5 rounded-2xl border border-slate-800 relative overflow-hidden">
         <div class="flex items-center justify-between text-xs text-slate-400 mb-2">
-          <span>ฝนตกหนักสุดรายชั่วโมง (24h)</span>
-          <span class="text-[11px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400">เกณฑ์ 60 มม.</span>
+          <span data-i18n-key="card2_title">ฝนตกหนักสุดรายชั่วโมง (24h)</span>
+          <span data-i18n-key="card2_limit" class="text-[11px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400">เกณฑ์ 60 มม.</span>
         </div>
         <div class="flex items-baseline space-x-1.5">
           <div id="metric-peak-hourly" class="text-3xl font-black text-white">--</div>
-          <span class="text-xs text-slate-400 font-medium">มม./ชม.</span>
+          <span id="metric-peak-hourly-unit" class="text-xs text-slate-400 font-medium">มม./ชม.</span>
         </div>
         <div class="mt-2 text-xs text-slate-300 flex items-center space-x-1">
-          <span>คาดตกหนักสุดเวลา:</span>
+          <span data-i18n-key="card2_peak_time_prefix">คาดตกหนักสุดเวลา:</span>
           <span id="metric-peak-time" class="font-bold text-amber-400">--</span>
         </div>
         <div class="mt-2 w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
@@ -530,15 +545,15 @@
       <!-- Card 3: Max 3-hr Cumulative -->
       <div class="bg-slate-900/80 p-5 rounded-2xl border border-slate-800 relative overflow-hidden">
         <div class="flex items-center justify-between text-xs text-slate-400 mb-2">
-          <span>ฝนสะสมสูงสุด 3 ชั่วโมง</span>
-          <span class="text-[11px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400">เกณฑ์ 80 มม.</span>
+          <span data-i18n-key="card3_title">ฝนสะสมสูงสุด 3 ชั่วโมง</span>
+          <span data-i18n-key="card3_limit" class="text-[11px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400">เกณฑ์ 80 มม.</span>
         </div>
         <div class="flex items-baseline space-x-1.5">
           <div id="metric-max-3hr" class="text-3xl font-black text-white">--</div>
-          <span class="text-xs text-slate-400 font-medium">มม. / 3 ชม.</span>
+          <span id="metric-max-3hr-unit" class="text-xs text-slate-400 font-medium">มม. / 3 ชม.</span>
         </div>
         <div class="mt-2 text-xs text-slate-300 flex items-center justify-between">
-          <span>รวมสะสมทั้งวัน:</span>
+          <span data-i18n-key="card3_total_rain">รวมสะสมทั้งวัน:</span>
           <span id="metric-total-rain" class="font-bold text-cyan-400">-- มม.</span>
         </div>
         <div class="mt-2 w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
@@ -549,7 +564,7 @@
       <!-- Card 4: Current District Weather -->
       <div class="bg-slate-900/80 p-5 rounded-2xl border border-slate-800 relative overflow-hidden">
         <div class="flex items-center justify-between text-xs text-slate-400 mb-2">
-          <span>สภาพอากาศปัจจุบัน</span>
+          <span data-i18n-key="card4_title">สภาพอากาศปัจจุบัน</span>
           <span id="metric-observed-time" class="text-[11px] text-slate-400">--</span>
         </div>
         <div class="flex items-center space-x-3">
@@ -560,8 +575,8 @@
           </div>
         </div>
         <div class="mt-2.5 pt-2 border-t border-slate-800 text-xs text-slate-400 flex items-center justify-between">
-          <span>ความชื้น: <strong id="metric-weather-humidity" class="text-slate-200">--%</strong></span>
-          <span>โอกาสเกิดฝน: <strong id="metric-weather-prob" class="text-blue-400">--%</strong></span>
+          <span><span data-i18n-key="card4_humidity">ความชื้น:</span> <strong id="metric-weather-humidity" class="text-slate-200">--%</strong></span>
+          <span><span data-i18n-key="card4_prob">โอกาสเกิดฝน:</span> <strong id="metric-weather-prob" class="text-blue-400">--%</strong></span>
         </div>
       </div>
 
@@ -573,9 +588,9 @@
         <div>
           <div class="flex items-center space-x-2">
             <span class="text-lg">📊</span>
-            <h3 class="text-base font-bold text-white">กราฟแนวโน้มปริมาณฝน 24 ชั่วโมงข้างหน้า (24-Hour Rainfall Trend)</h3>
+            <h3 data-i18n-key="chart_heading" class="text-base font-bold text-white">กราฟแนวโน้มปริมาณฝน 24 ชั่วโมงข้างหน้า (24-Hour Rainfall Trend)</h3>
           </div>
-          <p class="text-xs text-slate-400 mt-0.5">
+          <p data-i18n-key="chart_sub" class="text-xs text-slate-400 mt-0.5">
             เปรียบเทียบปริมาณฝนรายชั่วโมง (มม./ชม.) กับขีดจำกัดความสามารถการระบายน้ำของ กทม. (เส้นประสีแดง 60 มม.)
           </p>
         </div>
@@ -583,15 +598,15 @@
         <div class="flex items-center space-x-4 text-xs">
           <div class="flex items-center space-x-1.5">
             <span class="w-3 h-3 rounded-sm bg-blue-500 inline-block"></span>
-            <span class="text-slate-300">ฝนรายชั่วโมง (มม.)</span>
+            <span data-i18n-key="chart_legend_hourly" class="text-slate-300">ฝนรายชั่วโมง (มม.)</span>
           </div>
           <div class="flex items-center space-x-1.5">
             <span class="w-3 h-1 bg-cyan-400 inline-block"></span>
-            <span class="text-slate-300">สะสม 3 ชม. (มม.)</span>
+            <span data-i18n-key="chart_legend_cum" class="text-slate-300">สะสม 3 ชม. (มม.)</span>
           </div>
           <div class="flex items-center space-x-1.5">
             <span class="w-3 h-0.5 border-t-2 border-dashed border-rose-500 inline-block"></span>
-            <span class="text-rose-400 font-semibold">ขีดจำกัด กทม. (60 มม.)</span>
+            <span data-i18n-key="chart_legend_limit" class="text-rose-400 font-semibold">ขีดจำกัด กทม. (60 มม.)</span>
           </div>
         </div>
       </div>
@@ -606,29 +621,29 @@
         <div class="flex items-center space-x-2 p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
           <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
           <div>
-            <div class="font-bold text-emerald-400">เขียว: ปกติ</div>
-            <div class="text-[10px] text-slate-400">&lt; 10 มม./ชม.</div>
+            <div data-i18n-key="guide_green_title" class="font-bold text-emerald-400">เขียว: ปกติ</div>
+            <div data-i18n-key="guide_green_sub" class="text-[10px] text-slate-400">&lt; 10 มม./ชม.</div>
           </div>
         </div>
         <div class="flex items-center space-x-2 p-2 rounded-lg bg-amber-500/10 border border-amber-500/20">
           <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
           <div>
-            <div class="font-bold text-amber-400">เหลือง: เฝ้าระวัง</div>
-            <div class="text-[10px] text-slate-400">10 - 35 มม./ชม.</div>
+            <div data-i18n-key="guide_yellow_title" class="font-bold text-amber-400">เหลือง: เฝ้าระวัง</div>
+            <div data-i18n-key="guide_yellow_sub" class="text-[10px] text-slate-400">10 - 35 มม./ชม.</div>
           </div>
         </div>
         <div class="flex items-center space-x-2 p-2 rounded-lg bg-orange-500/10 border border-orange-500/20">
           <span class="w-2.5 h-2.5 rounded-full bg-orange-500"></span>
           <div>
-            <div class="font-bold text-orange-400">ส้ม: เตือนน้ำท่วม</div>
-            <div class="text-[10px] text-slate-400">35.1 - 60 มม./ชม.</div>
+            <div data-i18n-key="guide_orange_title" class="font-bold text-orange-400">ส้ม: เตือนน้ำท่วม</div>
+            <div data-i18n-key="guide_orange_sub" class="text-[10px] text-slate-400">35.1 - 60 มม./ชม.</div>
           </div>
         </div>
         <div class="flex items-center space-x-2 p-2 rounded-lg bg-rose-500/10 border border-rose-500/20">
           <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
           <div>
-            <div class="font-bold text-rose-400">แดง: วิกฤตฉับพลัน</div>
-            <div class="text-[10px] text-slate-400">&gt; 60 มม./ชม.</div>
+            <div data-i18n-key="guide_red_title" class="font-bold text-rose-400">แดง: วิกฤตฉับพลัน</div>
+            <div data-i18n-key="guide_red_sub" class="text-[10px] text-slate-400">&gt; 60 มม./ชม.</div>
           </div>
         </div>
       </div>
@@ -639,14 +654,14 @@
       <div class="flex items-center justify-between">
         <div class="flex items-center space-x-2">
           <span class="text-lg">⏱️</span>
-          <h3 class="text-base font-bold text-white">ตารางคาดการณ์รายชั่วโมง 24 ชั่วโมงข้างหน้า (Hourly Timeline)</h3>
+          <h3 data-i18n-key="timeline_heading" class="text-base font-bold text-white">ตารางคาดการณ์รายชั่วโมง 24 ชั่วโมงข้างหน้า (Hourly Timeline)</h3>
         </div>
-        <span class="text-xs text-slate-400">เลื่อนแนวนอนเพื่อดูเวลาถัดไป</span>
+        <span data-i18n-key="timeline_sub" class="text-xs text-slate-400">เลื่อนแนวนอนเพื่อดูเวลาถัดไป</span>
       </div>
 
       <div id="hourly-cards-scroll" class="flex gap-2.5 overflow-x-auto pb-3 pt-1">
         <!-- Rendered dynamically via JavaScript -->
-        <div class="text-xs text-slate-400 py-6 text-center w-full">กำลังโหลดตารางข้อมูลรายชั่วโมง...</div>
+        <div data-i18n-key="timeline_loading" class="text-xs text-slate-400 py-6 text-center w-full">กำลังโหลดตารางข้อมูลรายชั่วโมง...</div>
       </div>
     </section>
 
@@ -658,11 +673,11 @@
       </div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs sm:text-sm">
         <div class="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800/80">
-          <span class="text-slate-400 block mb-1">🚨 จุดเสี่ยงน้ำท่วมขังหลักในพื้นที่:</span>
+          <span data-i18n-key="district_hotspots_label" class="text-slate-400 block mb-1">🚨 จุดเสี่ยงน้ำท่วมขังหลักในพื้นที่:</span>
           <span id="district-hotspots-text" class="text-slate-200 font-medium">--</span>
         </div>
         <div class="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800/80">
-          <span class="text-slate-400 block mb-1">🌊 ลุ่มน้ำและโครงสร้างพื้นฐานการระบายน้ำ:</span>
+          <span data-i18n-key="district_basin_label" class="text-slate-400 block mb-1">🌊 ลุ่มน้ำและโครงสร้างพื้นฐานการระบายน้ำ:</span>
           <span id="district-basin-text" class="text-slate-200 font-medium">--</span>
         </div>
       </div>
@@ -678,7 +693,7 @@
         <span class="hidden sm:inline text-slate-600">|</span>
         <a href="mailto:chavalit.tira@gmail.com" class="text-blue-400 hover:text-white transition-colors">chavalit.tira@gmail.com</a>
         <span class="hidden sm:inline text-slate-600">|</span>
-        <span class="text-[11px] text-slate-500">BKK Flood Watch · BMA Drainage Capacity Standards</span>
+        <span data-i18n-key="footer_subtitle" class="text-[11px] text-slate-500">BKK Flood Watch · BMA Drainage Capacity Standards</span>
       </div>
       <div class="flex items-center space-x-3">
         <a href="https://github.com/bank1009" target="_blank" rel="noopener noreferrer" class="inline-flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition group shadow-sm">
@@ -698,12 +713,12 @@
       <div class="flex items-center justify-between border-b border-slate-800 pb-3">
         <div class="flex items-center space-x-2">
           <span class="text-xl">📐</span>
-          <h3 class="text-lg font-bold text-white">เกณฑ์ประเมินความเสี่ยงน้ำท่วม สำนักการระบายน้ำ กทม.</h3>
+          <h3 data-i18n-key="modal_title" class="text-lg font-bold text-white">เกณฑ์ประเมินความเสี่ยงน้ำท่วม สำนักการระบายน้ำ กทม.</h3>
         </div>
         <button onclick="toggleStandardsModal(false)" class="text-slate-400 hover:text-white text-xl">✕</button>
       </div>
 
-      <p class="text-xs text-slate-300 leading-relaxed">
+      <p data-i18n-key="modal_intro" class="text-xs text-slate-300 leading-relaxed">
         ระบบท่อระบายน้ำหลักของกรุงเทพมหานครถูกออกแบบตามเกณฑ์มาตรฐานให้รองรับปริมาณน้ำฝนได้ไม่เกิน <strong>60 มิลลิเมตรต่อชั่วโมง (60 mm/hr)</strong> 
         หากฝนตกเกินกว่าเกณฑ์ดังกล่าว น้ำฝนจะไม่สามารถไหลลงท่อได้ทันและเกิดน้ำรอระบายหรือน้ำท่วมขังฉับพลัน
       </p>
@@ -712,42 +727,42 @@
         <!-- Green -->
         <div class="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30">
           <div class="flex items-center justify-between font-bold text-emerald-400 mb-1">
-            <span>🟢 สีเขียว: ปกติ (Normal)</span>
-            <span>&lt; 10 มม./ชม. และ สะสม 3 ชม. &lt; 25 มม.</span>
+            <span data-i18n-key="modal_green_tier">🟢 สีเขียว: ปกติ (Normal)</span>
+            <span data-i18n-key="modal_green_rule">&lt; 10 มม./ชม. และ สะสม 3 ชม. &lt; 25 มม.</span>
           </div>
-          <p class="text-slate-300">การระบายน้ำปกติ สัญจรได้ตามปกติ สภาพผิวจราจรแห้งหรือมีน้ำขังเพียงเล็กน้อยตามแอ่งธรรมชาติ</p>
+          <p data-i18n-key="modal_green_desc" class="text-slate-300">การระบายน้ำปกติ สัญจรได้ตามปกติ สภาพผิวจราจรแห้งหรือมีน้ำขังเพียงเล็กน้อยตามแอ่งธรรมชาติ</p>
         </div>
 
         <!-- Yellow -->
         <div class="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30">
           <div class="flex items-center justify-between font-bold text-amber-400 mb-1">
-            <span>🟡 สีเหลือง: เฝ้าระวังน้ำรอการระบาย (Watch)</span>
-            <span>10.0 - 35.0 มม./ชม. หรือ สะสม 3 ชม. 25.0 - 50.0 มม.</span>
+            <span data-i18n-key="modal_yellow_tier">🟡 สีเหลือง: เฝ้าระวังน้ำรอการระบาย (Watch)</span>
+            <span data-i18n-key="modal_yellow_rule">10.0 - 35.0 มม./ชม. หรือ สะสม 3 ชม. 25.0 - 50.0 มม.</span>
           </div>
-          <p class="text-slate-300">ฝนปานกลางถึงหนัก อาจมีน้ำขังผิวจราจร 5-10 ซม. ในจุดลุ่มต่ำ ชะลอความเร็วและระวังการลื่นไถล</p>
+          <p data-i18n-key="modal_yellow_desc" class="text-slate-300">ฝนปานกลางถึงหนัก อาจมีน้ำขังผิวจราจร 5-10 ซม. ในจุดลุ่มต่ำ ชะลอความเร็วและระวังการลื่นไถล</p>
         </div>
 
         <!-- Orange -->
         <div class="p-3 rounded-xl bg-orange-500/10 border border-orange-500/30">
           <div class="flex items-center justify-between font-bold text-orange-400 mb-1">
-            <span>🟠 สีส้ม: แจ้งเตือนน้ำท่วมขัง (Warning)</span>
-            <span>35.1 - 60.0 มม./ชม. หรือ สะสม 3 ชม. 50.1 - 80.0 มม.</span>
+            <span data-i18n-key="modal_orange_tier">🟠 สีส้ม: แจ้งเตือนน้ำท่วมขัง (Warning)</span>
+            <span data-i18n-key="modal_orange_rule">35.1 - 60.0 มม./ชม. หรือ สะสม 3 ชม. 50.1 - 80.0 มม.</span>
           </div>
-          <p class="text-slate-300">ฝนตกหนักใกล้เต็มศักยภาพท่อระบายน้ำ กทม. (60 มม.) รถเล็กควรหลีกเลี่ยงซอยต่ำและอุโมงค์ทางลอด</p>
+          <p data-i18n-key="modal_orange_desc" class="text-slate-300">ฝนตกหนักใกล้เต็มศักยภาพท่อระบายน้ำ กทม. (60 มม.) รถเล็กควรหลีกเลี่ยงซอยต่ำและอุโมงค์ทางลอด</p>
         </div>
 
         <!-- Red -->
         <div class="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30">
           <div class="flex items-center justify-between font-bold text-rose-400 mb-1">
-            <span>🔴 สีแดง: วิกฤตน้ำท่วมฉับพลัน (Critical)</span>
-            <span>&gt; 60.0 มม./ชม. หรือ สะสม 3 ชม. &gt; 80.0 มม.</span>
+            <span data-i18n-key="modal_red_tier">🔴 สีแดง: วิกฤตน้ำท่วมฉับพลัน (Critical)</span>
+            <span data-i18n-key="modal_red_rule">&gt; 60.0 มม./ชม. หรือ สะสม 3 ชม. &gt; 80.0 มม.</span>
           </div>
-          <p class="text-slate-300">วิกฤต! ปริมาณฝนเกินขีดความสามารถในการระบายน้ำของ กทม. เสี่ยงน้ำท่วมสูงเกิน 25 ซม. งดใช้เส้นทางจุดเสี่ยง</p>
+          <p data-i18n-key="modal_red_desc" class="text-slate-300">วิกฤต! ปริมาณฝนเกินขีดความสามารถในการระบายน้ำของ กทม. เสี่ยงน้ำท่วมสูงเกิน 25 ซม. งดใช้เส้นทางจุดเสี่ยง</p>
         </div>
       </div>
 
       <div class="pt-3 border-t border-slate-800 flex justify-end">
-        <button onclick="toggleStandardsModal(false)" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs">
+        <button onclick="toggleStandardsModal(false)" data-i18n-key="modal_close_btn" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs">
           เข้าใจแล้ว
         </button>
       </div>
@@ -756,12 +771,282 @@
 
   <!-- Application Logic Scripts -->
   <script>
+    // Translation Dictionary for Client-Side i18n
+    const TRANSLATIONS = {
+      th: {
+        header_subtitle: "ระบบคาดการณ์ปริมาณฝนและเฝ้าระวังน้ำท่วมขังตามเกณฑ์สำนักการระบายน้ำ กทม.",
+        live_openmeteo: "ข้อมูลสด Open-Meteo",
+        nav_bma_standards: "ℹ️ เกณฑ์ กทม.",
+        nav_refresh: "รีเฟรช",
+        banner_eval_tag: "ประเมินความเสี่ยง 6 ชม. ข้างหน้า",
+        banner_peak_label: "ฝนสูงสุดใน 6 ชม.",
+        banner_capacity_label: "ศักยภาพท่อ กทม.",
+        sim_heading: "โหมดจำลองสถานการณ์ฝนตก (Simulation Mode)",
+        sim_tag: "ทดสอบ Rule Engine",
+        sim_desc: "คลิกปุ่มเพื่อทดสอบการตอบสนองของระบบแจ้งเตือนตามเกณฑ์ กทม. ทุกระดับสี",
+        btn_sim_live: "📡 ข้อมูลจริง",
+        btn_sim_live_sub: "Live Forecast",
+        btn_sim_normal: "🟢 สภาพปกติ",
+        btn_sim_normal_sub: "ฝน < 10 มม.",
+        btn_sim_watch: "🟡 เฝ้าระวัง 22mm",
+        btn_sim_watch_sub: "ฝนรอระบาย 5-10 ซม.",
+        btn_sim_heavy: "🟠 เตือนหนัก 45mm",
+        btn_sim_heavy_sub: "ใกล้เต็มท่อ 60 มม.",
+        btn_sim_extreme: "🔴 วิกฤต 75mm",
+        btn_sim_extreme_sub: "เกินขีดความสามารถ",
+        btn_sim_cum: "🌊 ฝนแช่ > 80mm",
+        btn_sim_cum_sub: "สะสม 3 ชม. วิกฤต",
+        sim_status_back: "กลับสู่ข้อมูลจริง",
+        map_heading: "แผนที่เรดาร์คาดการณ์รัศมีน้ำท่วมขัง (Interactive Flood Risk Radius Map)",
+        map_boundary_tag: "🚨 ขอบเขต กทม. (BKK Boundary)",
+        map_sub_desc: "แสดงรัศมีผลกระทบคาดการณ์ 6 โซน กทม. | เส้นขอบแดง = เขตปกครองกรุงเทพฯ | ",
+        map_pin_hint: "📍 คลิกบนแผนที่จุดใดก็ได้เพื่อปักหมุดวิเคราะห์น้ำท่วมเฉพาะจุด (Drop a Pin)",
+        btn_use_location: "📍 ใช้ตำแหน่งปัจจุบัน (Use My Current Location)",
+        btn_reset_view: "🎯 มุมมองทั้ง กทม.",
+        legend_green_title: "🟢 ปกติ (รัศมี 800 ม.)",
+        legend_green_desc: "ฝน < 10 มม. ระบายคล่องตัว",
+        legend_yellow_title: "🟡 เฝ้าระวัง (รัศมี 1.5 กม.)",
+        legend_yellow_desc: "ฝน 10 - 35 มม. น้ำขัง 5-10 ซม.",
+        legend_orange_title: "🟠 แจ้งเตือน (รัศมี 2.5 กม.)",
+        legend_orange_desc: "ฝน 35.1 - 60 มม. ใกล้เต็มท่อ",
+        legend_red_title: "🔴 วิกฤตฉับพลัน (รัศมี 3.5 กม.)",
+        legend_red_desc: "ฝน > 60 มม. เกินศักยภาพ กทม.",
+        zones_heading: "เลือกจุดเฝ้าระวังน้ำท่วมขังสำคัญ 6 โซน กทม.",
+        zones_sub: "พิกัดทางยุทธศาสตร์การระบายน้ำ",
+        zone_prefix: "โซนที่ ",
+        zone_risk_label: "จุดเสี่ยง:",
+        ai_heading: "AI Flood Analysis",
+        ai_desc: "วิเคราะห์โอกาสและสาเหตุหลักการเกิดน้ำท่วมขังเฉพาะจุดด้วยระบบ Generative AI",
+        ai_skeleton_loading: "กำลังให้ AI วิเคราะห์ข้อมูล...",
+        card1_title: "ระดับความเสี่ยงภาพรวม 24 ชม.",
+        card1_pipe_ratio: "สัดส่วนความจุท่อ กทม.:",
+        card2_title: "ฝนตกหนักสุดรายชั่วโมง (24h)",
+        card2_limit: "เกณฑ์ 60 มม.",
+        card2_peak_time_prefix: "คาดตกหนักสุดเวลา:",
+        card3_title: "ฝนสะสมสูงสุด 3 ชั่วโมง",
+        card3_limit: "เกณฑ์ 80 มม.",
+        card3_total_rain: "รวมสะสมทั้งวัน:",
+        card4_title: "สภาพอากาศปัจจุบัน",
+        card4_humidity: "ความชื้น:",
+        card4_prob: "โอกาสเกิดฝน:",
+        chart_heading: "กราฟแนวโน้มปริมาณฝน 24 ชั่วโมงข้างหน้า (24-Hour Rainfall Trend)",
+        chart_sub: "เปรียบเทียบปริมาณฝนรายชั่วโมง (มม./ชม.) กับขีดจำกัดความสามารถการระบายน้ำของ กทม. (เส้นประสีแดง 60 มม.)",
+        chart_legend_hourly: "ฝนรายชั่วโมง (มม.)",
+        chart_legend_cum: "สะสม 3 ชม. (มม.)",
+        chart_legend_limit: "ขีดจำกัด กทม. (60 มม.)",
+        guide_green_title: "เขียว: ปกติ",
+        guide_green_sub: "< 10 มม./ชม.",
+        guide_yellow_title: "เหลือง: เฝ้าระวัง",
+        guide_yellow_sub: "10 - 35 มม./ชม.",
+        guide_orange_title: "ส้ม: เตือนน้ำท่วม",
+        guide_orange_sub: "35.1 - 60 มม./ชม.",
+        guide_red_title: "แดง: วิกฤตฉับพลัน",
+        guide_red_sub: "> 60 มม./ชม.",
+        timeline_heading: "ตารางคาดการณ์รายชั่วโมง 24 ชั่วโมงข้างหน้า (Hourly Timeline)",
+        timeline_sub: "เลื่อนแนวนอนเพื่อดูเวลาถัดไป",
+        timeline_loading: "กำลังโหลดตารางข้อมูลรายชั่วโมง...",
+        district_hotspots_label: "🚨 จุดเสี่ยงน้ำท่วมขังหลักในพื้นที่:",
+        district_basin_label: "🌊 ลุ่มน้ำและโครงสร้างพื้นฐานการระบายน้ำ:",
+        footer_subtitle: "BKK Flood Watch · BMA Drainage Capacity Standards",
+        modal_title: "เกณฑ์ประเมินความเสี่ยงน้ำท่วม สำนักการระบายน้ำ กทม.",
+        modal_intro: "ระบบท่อระบายน้ำหลักของกรุงเทพมหานครถูกออกแบบตามเกณฑ์มาตรฐานให้รองรับปริมาณน้ำฝนได้ไม่เกิน <strong>60 มิลลิเมตรต่อชั่วโมง (60 mm/hr)</strong> หากฝนตกเกินกว่าเกณฑ์ดังกล่าว น้ำฝนจะไม่สามารถไหลลงท่อได้ทันและเกิดน้ำรอระบายหรือน้ำท่วมขังฉับพลัน",
+        modal_green_tier: "🟢 สีเขียว: ปกติ (Normal)",
+        modal_green_rule: "< 10 มม./ชม. และ สะสม 3 ชม. < 25 มม.",
+        modal_green_desc: "การระบายน้ำปกติ สัญจรได้ตามปกติ สภาพผิวจราจรแห้งหรือมีน้ำขังเพียงเล็กน้อยตามแอ่งธรรมชาติ",
+        modal_yellow_tier: "🟡 สีเหลือง: เฝ้าระวังน้ำรอการระบาย (Watch)",
+        modal_yellow_rule: "10.0 - 35.0 มม./ชม. หรือ สะสม 3 ชม. 25.0 - 50.0 มม.",
+        modal_yellow_desc: "ฝนปานกลางถึงหนัก อาจมีน้ำขังผิวจราจร 5-10 ซม. ในจุดลุ่มต่ำ ชะลอความเร็วและระวังการลื่นไถล",
+        modal_orange_tier: "🟠 สีส้ม: แจ้งเตือนน้ำท่วมขัง (Warning)",
+        modal_orange_rule: "35.1 - 60.0 มม./ชม. หรือ สะสม 3 ชม. 50.1 - 80.0 มม.",
+        modal_orange_desc: "ฝนตกหนักใกล้เต็มศักยภาพท่อระบายน้ำ กทม. (60 มม.) รถเล็กควรหลีกเลี่ยงซอยต่ำและอุโมงค์ทางลอด",
+        modal_red_tier: "🔴 สีแดง: วิกฤตน้ำท่วมฉับพลัน (Critical)",
+        modal_red_rule: "> 60.0 มม./ชม. หรือ สะสม 3 ชม. > 80.0 มม.",
+        modal_red_desc: "วิกฤต! ปริมาณฝนเกินขีดความสามารถในการระบายน้ำของ กทม. เสี่ยงน้ำท่วมสูงเกิน 25 ซม. งดใช้เส้นทางจุดเสี่ยง",
+        modal_close_btn: "เข้าใจแล้ว"
+      },
+      en: {
+        header_subtitle: "Rainfall forecasting and flood risk watch system based on BMA Drainage Department standards.",
+        live_openmeteo: "Live Open-Meteo",
+        nav_bma_standards: "ℹ️ BMA Standards",
+        nav_refresh: "Refresh",
+        banner_eval_tag: "Next 6-Hour Risk Assessment",
+        banner_peak_label: "Peak Rain (6h)",
+        banner_capacity_label: "BMA Pipe Capacity",
+        sim_heading: "Rainfall Simulation Mode",
+        sim_tag: "Rule Engine Test",
+        sim_desc: "Click scenarios to test system alerts and radius visualization against BMA flood tiers.",
+        btn_sim_live: "📡 Live Data",
+        btn_sim_live_sub: "Live Forecast",
+        btn_sim_normal: "🟢 Normal",
+        btn_sim_normal_sub: "Rain < 10 mm",
+        btn_sim_watch: "🟡 Watch 22mm",
+        btn_sim_watch_sub: "Ponding 5-10 cm",
+        btn_sim_heavy: "🟠 Heavy 45mm",
+        btn_sim_heavy_sub: "Near 60mm limit",
+        btn_sim_extreme: "🔴 Extreme 75mm",
+        btn_sim_extreme_sub: "Exceeds capacity",
+        btn_sim_cum: "🌊 Cumul. > 80mm",
+        btn_sim_cum_sub: "3-Hr Flood Risk",
+        sim_status_back: "Back to Live Data",
+        map_heading: "Interactive Flood Risk Radius Map",
+        map_boundary_tag: "🚨 BKK Boundary",
+        map_sub_desc: "Displaying projected flood risk radii across 6 BKK zones | Red Outline = Bangkok Administrative Boundary | ",
+        map_pin_hint: "📍 Click anywhere on map to drop a pin for real-time localized flood risk analysis",
+        btn_use_location: "📍 Use My Current Location",
+        btn_reset_view: "🎯 Full BKK View",
+        legend_green_title: "🟢 Normal (Radius 800m)",
+        legend_green_desc: "Rain < 10 mm/hr, optimal drainage",
+        legend_yellow_title: "🟡 Watch (Radius 1.5 km)",
+        legend_yellow_desc: "Rain 10 - 35 mm/hr, ponding 5-10 cm",
+        legend_orange_title: "🟠 Warning (Radius 2.5 km)",
+        legend_orange_desc: "Rain 35.1 - 60 mm/hr, near pipe limit",
+        legend_red_title: "🔴 Critical (Radius 3.5 km)",
+        legend_red_desc: "Rain > 60 mm/hr, exceeds BMA capacity",
+        zones_heading: "Select Monitored Strategic Zone (6 Bangkok Hubs)",
+        zones_sub: "Key Strategic Drainage Points",
+        zone_prefix: "Zone ",
+        zone_risk_label: "Hotspots:",
+        ai_heading: "AI Flood Analysis",
+        ai_desc: "Generative AI evaluation of flood probability and root causes powered by Google Gemini",
+        ai_skeleton_loading: "Gemini AI is analyzing flood risk...",
+        card1_title: "Overall 24h Risk Level",
+        card1_pipe_ratio: "BMA Pipe Capacity Ratio:",
+        card2_title: "Peak Hourly Rain (24h)",
+        card2_limit: "60 mm Limit",
+        card2_peak_time_prefix: "Expected peak at:",
+        card3_title: "Max 3-Hour Cumulative",
+        card3_limit: "80 mm Limit",
+        card3_total_rain: "24h Total Rain:",
+        card4_title: "Current Weather",
+        card4_humidity: "Humidity:",
+        card4_prob: "Precip. Chance:",
+        chart_heading: "24-Hour Rainfall Trend vs. BMA Drainage Capacity",
+        chart_sub: "Comparing hourly rainfall rate (mm/hr) against Bangkok's standard drainage threshold (dashed red line: 60 mm/hr).",
+        chart_legend_hourly: "Hourly Rain (mm/hr)",
+        chart_legend_cum: "3-Hr Cumulative (mm)",
+        chart_legend_limit: "BMA Limit (60 mm)",
+        guide_green_title: "Green: Normal",
+        guide_green_sub: "< 10 mm/hr",
+        guide_yellow_title: "Yellow: Watch",
+        guide_yellow_sub: "10 - 35 mm/hr",
+        guide_orange_title: "Orange: Warning",
+        guide_orange_sub: "35.1 - 60 mm/hr",
+        guide_red_title: "Red: Critical",
+        guide_red_sub: "> 60 mm/hr",
+        timeline_heading: "24-Hour Forecast Timeline (Hourly Breakdown)",
+        timeline_sub: "Scroll horizontally to view upcoming hours",
+        timeline_loading: "Loading hourly timeline forecast...",
+        district_hotspots_label: "🚨 Key Flood Risk Hotspots:",
+        district_basin_label: "🌊 Drainage Basin & Infrastructure:",
+        footer_subtitle: "BKK Flood Watch · BMA Drainage Capacity Standards",
+        modal_title: "Bangkok Drainage Department (BMA) Assessment Standards",
+        modal_intro: "Bangkok's main underground drainage pipe system is engineered to handle up to <strong>60 millimeters of rain per hour (60 mm/hr)</strong>. Rainfall exceeding this rate overburdens the conduits, resulting in immediate street ponding or critical flash flooding.",
+        modal_green_tier: "🟢 Green: Normal",
+        modal_green_rule: "< 10 mm/hr & 3-hr cum. < 25 mm",
+        modal_green_desc: "Normal drainage capacity. Smooth traffic flow with dry roads or minor puddles.",
+        modal_yellow_tier: "🟡 Yellow: Watch (Ponding Risk)",
+        modal_yellow_rule: "10.0 - 35.0 mm/hr or 3-hr cum. 25.0 - 50.0 mm",
+        modal_yellow_desc: "Moderate to heavy rain. Potential road ponding 5-10 cm in low-lying depressions. Drive with caution.",
+        modal_orange_tier: "🟠 Orange: Warning (Flood Alert)",
+        modal_orange_rule: "35.1 - 60.0 mm/hr or 3-hr cum. 50.1 - 80.0 mm",
+        modal_orange_desc: "Heavy rain approaching BMA conduit ceiling (60 mm). Small vehicles should avoid low alleys and underpasses.",
+        modal_red_tier: "🔴 Red: Critical Flash Flood",
+        modal_red_rule: "> 60.0 mm/hr or 3-hr cum. > 80.0 mm",
+        modal_red_desc: "Critical! Rain rate exceeds BMA drainage capacity. High risk of severe flooding > 25 cm. Avoid critical routes.",
+        modal_close_btn: "Got It"
+      }
+    };
+
     // Application State
+    let currentLang = localStorage.getItem('bkk_flood_watch_lang') || 'th';
     let currentMode = 'live'; // 'live' or 'simulation'
     let currentScenario = null;
     let selectedLocationId = 'chatuchak';
     let chartInstance = null;
     let cachedData = null;
+    window.currentLang = currentLang;
+
+    // Bilingual Language Switcher (Zero Reload)
+    function setLanguage(lang, triggerFetch = true) {
+      currentLang = (lang === 'en') ? 'en' : 'th';
+      window.currentLang = currentLang;
+      try {
+        localStorage.setItem('bkk_flood_watch_lang', currentLang);
+      } catch (e) {}
+
+      // 1. Update UI Toggle Switch
+      const btnTh = document.getElementById('lang-btn-th');
+      const btnEn = document.getElementById('lang-btn-en');
+      if (currentLang === 'en') {
+        if (btnTh) btnTh.className = "px-2.5 py-1 text-xs font-bold rounded-md transition duration-200 text-slate-400 hover:text-white";
+        if (btnEn) btnEn.className = "px-2.5 py-1 text-xs font-bold rounded-md transition duration-200 bg-blue-600 text-white shadow-sm";
+        document.documentElement.lang = "en";
+      } else {
+        if (btnTh) btnTh.className = "px-2.5 py-1 text-xs font-bold rounded-md transition duration-200 bg-blue-600 text-white shadow-sm";
+        if (btnEn) btnEn.className = "px-2.5 py-1 text-xs font-bold rounded-md transition duration-200 text-slate-400 hover:text-white";
+        document.documentElement.lang = "th";
+      }
+
+      // 2. Translate all elements with data-i18n-key
+      const dict = TRANSLATIONS[currentLang] || TRANSLATIONS.th;
+      document.querySelectorAll('[data-i18n-key]').forEach(el => {
+        const key = el.getAttribute('data-i18n-key');
+        if (dict[key] !== undefined) {
+          if (dict[key].includes('<')) {
+            el.innerHTML = dict[key];
+          } else {
+            el.textContent = dict[key];
+          }
+        }
+      });
+
+      // 3. Update Monitored Location cards
+      document.querySelectorAll('.location-card').forEach(card => {
+        const nameTitle = card.querySelector('.loc-name-title');
+        const nameSub = card.querySelector('.loc-name-sub');
+        const hotspotsText = card.querySelector('.loc-hotspots-text');
+        const nameTh = card.getAttribute('data-name-th');
+        const nameEn = card.getAttribute('data-name-en');
+        const hotspotsTh = card.getAttribute('data-hotspots-th');
+        const hotspotsEn = card.getAttribute('data-hotspots-en');
+
+        if (currentLang === 'en') {
+          if (nameTitle && nameEn) nameTitle.textContent = nameEn;
+          if (nameSub && nameTh) nameSub.textContent = nameTh;
+          if (hotspotsText) hotspotsText.textContent = hotspotsEn || hotspotsTh;
+        } else {
+          if (nameTitle && nameTh) nameTitle.textContent = nameTh;
+          if (nameSub && nameEn) nameSub.textContent = nameEn;
+          if (hotspotsText) hotspotsText.textContent = hotspotsTh;
+        }
+      });
+
+      // 4. Update Chart.js labels & annotation if chart is ready
+      if (chartInstance) {
+        chartInstance.data.datasets[0].label = (currentLang === 'en' ? 'Hourly Rain (mm/hr)' : 'ฝนรายชั่วโมง (มม./ชม.)');
+        chartInstance.data.datasets[1].label = (currentLang === 'en' ? '3-Hr Cumulative (mm)' : 'สะสม 3 ชั่วโมง (มม.)');
+        if (chartInstance.options.plugins.annotation && chartInstance.options.plugins.annotation.annotations.bmaLimitLine) {
+          chartInstance.options.plugins.annotation.annotations.bmaLimitLine.label.content = 
+            (currentLang === 'en' ? 'BMA Pipe Limit (60 mm/hr)' : 'เกณฑ์ความจุท่อระบายน้ำ กทม. (60 มม./ชม.)');
+        }
+        chartInstance.update();
+      }
+
+      // 5. If cached data is available, re-render immediately for seamless instant switch
+      if (cachedData) {
+        renderDashboard(cachedData);
+      }
+
+      // 6. Optionally trigger backend fetch for language-specific AI insight and summaries
+      if (triggerFetch) {
+        fetchAndRenderMapZones(currentScenario);
+        if (selectedLocationId === 'custom_pin' && currentCustomPin) {
+          handleMapLocationClick(currentCustomPin.lat, currentCustomPin.lng, currentCustomPin.isCurrentLocation);
+        } else {
+          fetchForecastData();
+        }
+      }
+    }
 
     // Initialize Chart.js
     function initChart() {
@@ -773,7 +1058,7 @@
           datasets: [
             {
               type: 'bar',
-              label: 'ฝนรายชั่วโมง (มม./ชม.)',
+              label: (currentLang === 'en' ? 'Hourly Rain (mm/hr)' : 'ฝนรายชั่วโมง (มม./ชม.)'),
               data: [],
               backgroundColor: [],
               borderRadius: 6,
@@ -784,7 +1069,7 @@
             },
             {
               type: 'line',
-              label: 'สะสม 3 ชั่วโมง (มม.)',
+              label: (currentLang === 'en' ? '3-Hr Cumulative (mm)' : 'สะสม 3 ชั่วโมง (มม.)'),
               data: [],
               borderColor: '#06b6d4',
               backgroundColor: 'rgba(6, 182, 212, 0.1)',
@@ -820,18 +1105,22 @@
               cornerRadius: 10,
               callbacks: {
                 title: function(items) {
-                  return '⏰ เวลา ' + items[0].label;
+                  return (currentLang === 'en' ? '⏰ Time ' : '⏰ เวลา ') + items[0].label;
                 },
                 label: function(item) {
                   if (item.datasetIndex === 0) {
                     const val = item.raw;
-                    let riskText = 'ปกติ';
-                    if (val > 60) riskText = 'วิกฤตสีแดง (>60มม.)';
-                    else if (val > 35) riskText = 'แจ้งเตือนสีส้ม';
-                    else if (val >= 10) riskText = 'เฝ้าระวังสีเหลือง';
-                    return `🌧️ ปริมาณฝน: ${val.toFixed(1)} มม. (${riskText})`;
+                    let riskText = currentLang === 'en' ? 'Normal' : 'ปกติ';
+                    if (val > 60) riskText = currentLang === 'en' ? 'Critical Red (>60mm)' : 'วิกฤตสีแดง (>60มม.)';
+                    else if (val > 35) riskText = currentLang === 'en' ? 'Warning Orange' : 'แจ้งเตือนสีส้ม';
+                    else if (val >= 10) riskText = currentLang === 'en' ? 'Watch Yellow' : 'เฝ้าระวังสีเหลือง';
+                    return currentLang === 'en' 
+                      ? `🌧️ Rainfall: ${val.toFixed(1)} mm (${riskText})`
+                      : `🌧️ ปริมาณฝน: ${val.toFixed(1)} มม. (${riskText})`;
                   } else {
-                    return `🌊 สะสม 3 ชม.: ${item.raw.toFixed(1)} มม.`;
+                    return currentLang === 'en'
+                      ? `🌊 3-Hr Cum: ${item.raw.toFixed(1)} mm`
+                      : `🌊 สะสม 3 ชม.: ${item.raw.toFixed(1)} มม.`;
                   }
                 }
               }
@@ -847,7 +1136,7 @@
                   borderDash: [6, 4],
                   label: {
                     display: true,
-                    content: 'เกณฑ์ความจุท่อระบายน้ำ กทม. (60 มม./ชม.)',
+                    content: (currentLang === 'en' ? 'BMA Pipe Limit (60 mm/hr)' : 'เกณฑ์ความจุท่อระบายน้ำ กทม. (60 มม./ชม.)'),
                     position: 'end',
                     backgroundColor: 'rgba(239, 68, 68, 0.85)',
                     color: '#fff',
@@ -893,7 +1182,7 @@
                   size: 11
                 },
                 callback: function(val) {
-                  return val + ' มม.';
+                  return val + (currentLang === 'en' ? ' mm' : ' มม.');
                 }
               }
             }
@@ -907,12 +1196,11 @@
       const refreshIcon = document.getElementById('refresh-icon');
       if (refreshIcon) refreshIcon.classList.add('animate-spin');
       setAiLoadingState(true);
-      setAiLoadingState(true);
 
       try {
-        let url = `/api/forecast?location_id=${selectedLocationId}`;
+        let url = `/api/forecast?location_id=${selectedLocationId}&lang=${currentLang}`;
         if (currentMode === 'simulation' && currentScenario) {
-          url = `/api/simulate?scenario=${currentScenario}&location_id=${selectedLocationId}`;
+          url = `/api/simulate?scenario=${currentScenario}&location_id=${selectedLocationId}&lang=${currentLang}`;
         }
 
         const res = await fetch(url);
@@ -951,9 +1239,9 @@
       if (skeleton) skeleton.classList.add('hidden');
       if (textEl) {
         textEl.classList.remove('hidden');
-        textEl.textContent = insight || 'AI Analysis unavailable. Please configure API key.';
+        textEl.textContent = insight || (currentLang === 'en' ? 'AI Analysis unavailable. Please configure API key.' : 'ไม่สามารถแสดงการวิเคราะห์ AI ได้ กรุณาตรวจสอบ API key');
       }
-      if (statusText) statusText.textContent = 'วิเคราะห์สำเร็จ';
+      if (statusText) statusText.textContent = (currentLang === 'en' ? 'Analysis Complete' : 'วิเคราะห์สำเร็จ');
     }
 
     // Set AI Loading State
@@ -966,7 +1254,8 @@
       if (isLoading) {
         skeleton.classList.remove('hidden');
         textEl.classList.add('hidden');
-        if (statusText) statusText.textContent = 'กำลังวิเคราะห์...';
+        textEl.textContent = '';
+        if (statusText) statusText.textContent = (currentLang === 'en' ? 'Analyzing...' : 'กำลังวิเคราะห์...');
       } else {
         skeleton.classList.add('hidden');
         textEl.classList.remove('hidden');
@@ -1017,11 +1306,17 @@
       iconBadge.innerHTML = icon;
       iconBadge.className = `w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0 ${badgeBg} shadow-lg`;
 
-      tag.textContent = `${risk6h.status_name} ใน 6 ชม. ข้างหน้า`;
-      peakTimeTag.textContent = `เวลาคาดการณ์พีค: ${analysis.peak_6h_time_formatted || '-'}`;
+      tag.textContent = (currentLang === 'en')
+        ? `${risk6h.status_name} in next 6h`
+        : `${risk6h.status_name} ใน 6 ชม. ข้างหน้า`;
+      peakTimeTag.textContent = (currentLang === 'en')
+        ? `Peak Forecast Time: ${analysis.peak_6h_time_formatted || '-'}`
+        : `เวลาคาดการณ์พีค: ${analysis.peak_6h_time_formatted || '-'}`;
       title.textContent = analysis.banner_message;
-      action.textContent = `คำแนะนำ: ${risk6h.action_th}`;
-      peakVal.innerHTML = `${analysis.peak_6h_hourly.toFixed(1)} <span class="text-xs font-normal text-slate-400">มม./ชม.</span>`;
+      action.textContent = (currentLang === 'en')
+        ? `Action: ${risk6h.action_en || risk6h.action_text || risk6h.action_th}`
+        : `คำแนะนำ: ${risk6h.action_th || risk6h.action_text}`;
+      peakVal.innerHTML = `${analysis.peak_6h_hourly.toFixed(1)} <span class="text-xs font-normal text-slate-400">${currentLang === 'en' ? 'mm/hr' : 'มม./ชม.'}</span>`;
     }
 
     // 2. Render Metric Cards
@@ -1036,15 +1331,17 @@
 
       tierBadge.className = `px-2 py-0.5 rounded-full text-xs font-bold border ${overall.badge_class}`;
       tierBadge.textContent = overall.code;
-      tierTitle.textContent = overall.title_th;
+      tierTitle.textContent = (currentLang === 'en') ? (overall.title_en || overall.title) : (overall.title_th || overall.title);
       tierTitle.style.color = overall.color;
-      tierAction.textContent = overall.action_th;
+      tierAction.textContent = (currentLang === 'en') ? (overall.action_en || overall.action_text || overall.action_th) : (overall.action_th || overall.action_text);
       bmaPct.textContent = overall.bma_limit_pct;
 
       // Metric 2: Peak Hourly
       const peakHourlyEl = document.getElementById('metric-peak-hourly');
       const peakTimeEl = document.getElementById('metric-peak-time');
       const peakBar = document.getElementById('metric-peak-bar');
+      const peakUnitEl = document.getElementById('metric-peak-hourly-unit');
+      if (peakUnitEl) peakUnitEl.textContent = (currentLang === 'en' ? 'mm/hr' : 'มม./ชม.');
       
       const peakVal = data.analysis.peak_hourly;
       peakHourlyEl.textContent = peakVal.toFixed(1);
@@ -1061,10 +1358,12 @@
       const max3hrEl = document.getElementById('metric-max-3hr');
       const totalRainEl = document.getElementById('metric-total-rain');
       const bar3hr = document.getElementById('metric-3hr-bar');
+      const max3hrUnitEl = document.getElementById('metric-max-3hr-unit');
+      if (max3hrUnitEl) max3hrUnitEl.textContent = (currentLang === 'en' ? 'mm / 3h' : 'มม. / 3 ชม.');
 
       const max3hr = data.analysis.max_3hr_cumulative;
       max3hrEl.textContent = max3hr.toFixed(1);
-      totalRainEl.textContent = data.analysis.total_rain_24h.toFixed(1) + ' มม.';
+      totalRainEl.textContent = data.analysis.total_rain_24h.toFixed(1) + (currentLang === 'en' ? ' mm' : ' มม.');
       
       const pct3hr = Math.min(100, Math.round((max3hr / 80.0) * 100));
       bar3hr.style.width = pct3hr + '%';
@@ -1076,10 +1375,10 @@
       const curr = data.current;
       document.getElementById('metric-weather-icon').textContent = curr.weather_icon;
       document.getElementById('metric-weather-temp').textContent = curr.temperature.toFixed(1) + '°C';
-      document.getElementById('metric-weather-desc').textContent = curr.weather_desc_th;
+      document.getElementById('metric-weather-desc').textContent = (currentLang === 'en') ? (curr.weather_desc_en || curr.weather_desc_th) : curr.weather_desc_th;
       document.getElementById('metric-weather-humidity').textContent = curr.humidity + '%';
       document.getElementById('metric-weather-prob').textContent = curr.precipitation_probability + '%';
-      document.getElementById('metric-observed-time').textContent = 'เวลา ' + curr.observed_at_formatted;
+      document.getElementById('metric-observed-time').textContent = (currentLang === 'en' ? 'Time ' : 'เวลา ') + curr.observed_at_formatted;
     }
 
     // 3. Render Chart
@@ -1105,7 +1404,9 @@
       chartInstance.data.labels = labels;
       chartInstance.data.datasets[0].data = precipData;
       chartInstance.data.datasets[0].backgroundColor = barColors;
+      chartInstance.data.datasets[0].label = (currentLang === 'en' ? 'Hourly Rain (mm/hr)' : 'ฝนรายชั่วโมง (มม./ชม.)');
       chartInstance.data.datasets[1].data = cum3hrData;
+      chartInstance.data.datasets[1].label = (currentLang === 'en' ? '3-Hr Cumulative (mm)' : 'สะสม 3 ชั่วโมง (มม.)');
 
       const maxVal = Math.max(...precipData, ...cum3hrData, 65);
       chartInstance.options.scales.y.suggestedMax = Math.ceil(maxVal / 10) * 10;
@@ -1126,6 +1427,9 @@
         const prob = series.precipitation_probability[idx] || 0;
         const code = item.risk_code;
         const color = item.risk_color;
+        const tierTitle = (currentLang === 'en') ? (item.title_en || item.title_th) : item.title_th;
+        const unit = (currentLang === 'en') ? 'mm/hr' : 'มม./ชม.';
+        const cumLabel = (currentLang === 'en') ? 'Cum. 3h' : 'สะสม 3h';
 
         let badgeBg = 'bg-slate-800 text-slate-300';
         if (code === 'RED') badgeBg = 'bg-red-500/20 text-red-400 border border-red-500/40';
@@ -1140,13 +1444,13 @@
               <div class="text-lg font-black text-white" style="color: ${rain > 0 ? color : '#f8fafc'}">
                 ${rain.toFixed(1)}
               </div>
-              <div class="text-[10px] text-slate-400">มม./ชม.</div>
+              <div class="text-[10px] text-slate-400">${unit}</div>
             </div>
-            <div class="text-[10px] py-0.5 rounded ${badgeBg} font-medium truncate">
-              ${item.title_th}
+            <div class="text-[10px] py-0.5 rounded ${badgeBg} font-medium truncate" title="${tierTitle}">
+              ${tierTitle}
             </div>
             <div class="mt-2 text-[10px] text-slate-400 flex justify-between border-t border-slate-800/80 pt-1">
-              <span>สะสม 3h</span>
+              <span>${cumLabel}</span>
               <span class="text-cyan-400 font-semibold">${cum3.toFixed(1)}</span>
             </div>
           </div>
@@ -1156,9 +1460,19 @@
 
     // 5. Render District Strategic Details
     function renderDistrictInfo(loc) {
-      document.getElementById('district-name-heading').textContent = `ข้อมูลจุดเสี่ยงและระบบระบายน้ำ: ${loc.name_th} (${loc.name_en})`;
-      document.getElementById('district-hotspots-text').textContent = loc.hotspots;
-      document.getElementById('district-basin-text').textContent = loc.drainage_basin;
+      const headingEl = document.getElementById('district-name-heading');
+      const hotspotsEl = document.getElementById('district-hotspots-text');
+      const basinEl = document.getElementById('district-basin-text');
+
+      if (currentLang === 'en') {
+        headingEl.textContent = `Risk Hotspots & Drainage Infrastructure: ${loc.name_en || loc.name_th}`;
+        hotspotsEl.textContent = loc.hotspots_en || loc.hotspots;
+        basinEl.textContent = loc.drainage_basin_en || loc.drainage_basin;
+      } else {
+        headingEl.textContent = `ข้อมูลจุดเสี่ยงและระบบระบายน้ำ: ${loc.name_th} (${loc.name_en})`;
+        hotspotsEl.textContent = loc.hotspots;
+        basinEl.textContent = loc.drainage_basin;
+      }
     }
 
     // Map Global References
@@ -1499,7 +1813,7 @@
     // Fetch and render all 6 zones on the map
     async function fetchAndRenderMapZones(scenarioId = null) {
       try {
-        const url = `/api/all-zones-status${scenarioId ? '?scenario=' + scenarioId : ''}`;
+        const url = `/api/all-zones-status?lang=${currentLang}${scenarioId ? '&scenario=' + scenarioId : ''}`;
         const res = await fetch(url);
         const data = await res.json();
         if (!data.success) return;
@@ -1521,29 +1835,31 @@
 
       if (!summary) return;
 
+      const isEn = (currentLang === 'en');
+
       if (summary.critical_count > 0) {
-        badgeRed.textContent = `🔴 วิกฤต ${summary.critical_count}`;
+        badgeRed.textContent = isEn ? `🔴 Critical ${summary.critical_count}` : `🔴 วิกฤต ${summary.critical_count}`;
         badgeRed.classList.remove('hidden');
       } else {
         badgeRed.classList.add('hidden');
       }
 
       if (summary.warning_count > 0) {
-        badgeOrange.textContent = `🟠 เตือน ${summary.warning_count}`;
+        badgeOrange.textContent = isEn ? `🟠 Warning ${summary.warning_count}` : `🟠 เตือน ${summary.warning_count}`;
         badgeOrange.classList.remove('hidden');
       } else {
         badgeOrange.classList.add('hidden');
       }
 
       if (summary.watch_count > 0) {
-        badgeYellow.textContent = `🟡 เฝ้าระวัง ${summary.watch_count}`;
+        badgeYellow.textContent = isEn ? `🟡 Watch ${summary.watch_count}` : `🟡 เฝ้าระวัง ${summary.watch_count}`;
         badgeYellow.classList.remove('hidden');
       } else {
         badgeYellow.classList.add('hidden');
       }
 
       if (summary.normal_count > 0) {
-        badgeGreen.textContent = `🟢 ปกติ ${summary.normal_count}`;
+        badgeGreen.textContent = isEn ? `🟢 Normal ${summary.normal_count}` : `🟢 ปกติ ${summary.normal_count}`;
         badgeGreen.classList.remove('hidden');
       } else {
         badgeGreen.classList.add('hidden');
@@ -1599,9 +1915,11 @@
         // 2. Update or create center google.maps.Marker (bouncing for RED zones)
         const isRed = (tier === 'RED');
         const markerAnim = isRed ? google.maps.Animation.BOUNCE : null;
+        const markerTitle = (currentLang === 'en' && zone.name_en) ? zone.name_en : zone.name_th;
 
         if (gmapMarkers[zone.id]) {
           const marker = gmapMarkers[zone.id];
+          marker.setTitle(markerTitle);
           marker.setAnimation(markerAnim);
           marker.setIcon({
             path: google.maps.SymbolPath.CIRCLE,
@@ -1615,7 +1933,7 @@
           const marker = new google.maps.Marker({
             position: pos,
             map: gmap,
-            title: zone.name_th,
+            title: markerTitle,
             animation: markerAnim,
             label: {
               text: `${idx + 1}`,
@@ -1648,36 +1966,45 @@
     // Open Google Maps InfoWindow displaying exact format: [Zone Name] | Peak Rain: XX mm/hr | Risk: [TIER]
     function openGoogleMapInfoWindow(zone) {
       if (!gmap || !gmapInfoWindow) return;
+      const isEn = (currentLang === 'en');
       const cfg = GOOGLE_RADIUS_CONFIG[zone.risk_tier] || GOOGLE_RADIUS_CONFIG.GREEN;
       const peakRain = (zone.peak_rain_mm !== undefined ? zone.peak_rain_mm : (zone.peak_6h_hourly || 0)).toFixed(1);
       const cum3hr = (zone.cumulative_3hr_mm !== undefined ? zone.cumulative_3hr_mm : (zone.max_3hr_cumulative || 0)).toFixed(1);
+      const zoneName = isEn ? (zone.name_en || zone.name_th) : zone.name_th;
+      const actionText = isEn ? (zone.action_en || zone.action_text || zone.action_th) : (zone.action_th || zone.action_text);
+      const radiusLabel = isEn ? "Impact Radius:" : "รัศมีผลกระทบ:";
+      const kmUnit = isEn ? "km" : "กม.";
+      const cumLabel = isEn ? "Max 3-hr Cum:" : "สะสม 3 ชม. สูงสุด:";
+      const mmUnit = isEn ? "mm" : "มม.";
+      const actionLabel = isEn ? "Action:" : "คำแนะนำ:";
+      const btnText = isEn ? "📊 View 24h Forecast" : "📊 แสดงกราฟและข้อมูล 24 ชม.";
 
       const contentHtml = `
         <div style="background-color: #0f172a; color: #f8fafc; padding: 12px 14px; border-radius: 12px; font-family: 'Prompt', 'Inter', sans-serif; min-width: 250px; max-width: 310px; box-sizing: border-box;">
           <div style="font-size: 14px; font-weight: 700; color: #ffffff; margin-bottom: 6px; border-bottom: 1px solid #334155; padding-bottom: 6px; display: flex; justify-content: space-between; align-items: center;">
-            <span>${zone.name_th}</span>
+            <span>${zoneName}</span>
             <span style="font-size: 10px; padding: 2px 8px; border-radius: 9999px; font-weight: 800; background: ${cfg.fillColor}25; color: ${cfg.fillColor}; border: 1px solid ${cfg.fillColor}80;">
               ${zone.risk_tier}
             </span>
           </div>
           <div style="font-size: 12px; line-height: 1.5; color: #cbd5e1; margin-bottom: 8px;">
             <div style="margin-bottom: 4px; font-weight: 600; color: #f1f5f9;">
-              [${zone.name_th}] | Peak Rain: ${peakRain} mm/hr | Risk: [${zone.risk_tier}]
+              [${zoneName}] | Peak Rain: ${peakRain} mm/hr | Risk: [${zone.risk_tier}]
             </div>
             <div style="display: flex; justify-content: space-between; font-size: 11px; color: #94a3b8; margin-top: 4px;">
-              <span>รัศมีผลกระทบ:</span>
-              <strong style="color: ${cfg.fillColor};">${(cfg.radius / 1000).toFixed(1)} กม.</strong>
+              <span>${radiusLabel}</span>
+              <strong style="color: ${cfg.fillColor};">${(cfg.radius / 1000).toFixed(1)} ${kmUnit}</strong>
             </div>
             <div style="display: flex; justify-content: space-between; font-size: 11px; color: #94a3b8;">
-              <span>สะสม 3 ชม. สูงสุด:</span>
-              <strong style="color: #38bdf8;">${cum3hr} มม.</strong>
+              <span>${cumLabel}</span>
+              <strong style="color: #38bdf8;">${cum3hr} ${mmUnit}</strong>
             </div>
             <div style="margin-top: 6px; padding-top: 6px; border-top: 1px solid #1e293b; font-size: 11px; color: #cbd5e1; line-height: 1.35;">
-              <strong style="color: #94a3b8;">คำแนะนำ:</strong> ${zone.action_text || zone.action_th}
+              <strong style="color: #94a3b8;">${actionLabel}</strong> ${actionText}
             </div>
           </div>
           <button onclick="selectLocation('${zone.id}', false)" style="width: 100%; padding: 6px 10px; font-size: 11px; font-weight: 600; border-radius: 8px; background-color: #2563eb; color: #ffffff; border: none; cursor: pointer; transition: background 0.2s;">
-            📊 แสดงกราฟและข้อมูล 24 ชม.
+            ${btnText}
           </button>
         </div>
       `;
@@ -1699,6 +2026,7 @@
     // Handle Drop a Pin: Map Click anywhere on Google Map / Leaflet
     async function handleMapLocationClick(lat, lng, isCurrentLocation = false) {
       if (lat === undefined || lng === undefined || lat === null || lng === null) return;
+      const isEn = (currentLang === 'en');
 
       // 1. Show a loading indicator on the UI
       const bannerTitle = document.getElementById('banner-title');
@@ -1713,20 +2041,20 @@
 
       if (bannerTitle) {
         bannerTitle.textContent = isCurrentLocation 
-          ? "กำลังวิเคราะห์สภาพอากาศ ณ ตำแหน่งปัจจุบันของคุณ..." 
-          : "กำลังวิเคราะห์สภาพอากาศ ณ จุดที่เลือก...";
+          ? (isEn ? "Analyzing weather at your current location..." : "กำลังวิเคราะห์สภาพอากาศ ณ ตำแหน่งปัจจุบันของคุณ...")
+          : (isEn ? "Analyzing weather at selected pin..." : "กำลังวิเคราะห์สภาพอากาศ ณ จุดที่เลือก...");
       }
       if (bannerTag) {
         bannerTag.textContent = isCurrentLocation 
-          ? `📍 ตำแหน่งปัจจุบัน (${lat.toFixed(4)}, ${lng.toFixed(4)})` 
-          : `พิกัด ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+          ? (isEn ? `📍 Current Location (${lat.toFixed(4)}, ${lng.toFixed(4)})` : `📍 ตำแหน่งปัจจุบัน (${lat.toFixed(4)}, ${lng.toFixed(4)})`)
+          : (isEn ? `Coordinates ${lat.toFixed(4)}, ${lng.toFixed(4)}` : `พิกัด ${lat.toFixed(4)}, ${lng.toFixed(4)}`);
         bannerTag.className = isCurrentLocation
           ? 'text-xs px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider bg-emerald-500/30 text-emerald-300 border border-emerald-500/50'
           : 'text-xs px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider bg-blue-500/30 text-blue-300 border border-blue-500/50';
       }
-      if (peakTimeTag) peakTimeTag.textContent = "วิเคราะห์ข้อมูลดาวเทียม Open-Meteo";
-      if (bannerAction) bannerAction.textContent = "กำลังดึงข้อมูลปริมาณฝนและประเมินเกณฑ์ระบายน้ำ กทม....";
-      if (bannerPeakVal) bannerPeakVal.innerHTML = `<span class="text-sm font-medium text-slate-400">กำลังโหลด...</span>`;
+      if (peakTimeTag) peakTimeTag.textContent = isEn ? "Analyzing Open-Meteo Satellite Data" : "วิเคราะห์ข้อมูลดาวเทียม Open-Meteo";
+      if (bannerAction) bannerAction.textContent = isEn ? "Fetching rainfall and assessing BMA drainage capacity..." : "กำลังดึงข้อมูลปริมาณฝนและประเมินเกณฑ์ระบายน้ำ กทม....";
+      if (bannerPeakVal) bannerPeakVal.innerHTML = `<span class="text-sm font-medium text-slate-400">${isEn ? "Loading..." : "กำลังโหลด..."}</span>`;
 
       // 2. State Management & Cleanup: remove previous custom pin circle and InfoWindow
       if (customPinCircle) {
@@ -1757,7 +2085,7 @@
       });
 
       try {
-        let url = `/api/check-location?lat=${lat}&lon=${lng}`;
+        let url = `/api/check-location?lat=${lat}&lon=${lng}&lang=${currentLang}`;
         if (currentMode === 'simulation' && currentScenario) {
           url += `&scenario=${currentScenario}`;
         }
@@ -1766,7 +2094,7 @@
         const data = await res.json();
 
         if (!data.success) {
-          if (bannerTitle) bannerTitle.textContent = "เกิดข้อผิดพลาดในการดึงข้อมูลสภาพอากาศพิกัดนี้";
+          if (bannerTitle) bannerTitle.textContent = isEn ? "Error fetching forecast for coordinates" : "เกิดข้อผิดพลาดในการดึงข้อมูลสภาพอากาศพิกัดนี้";
           return;
         }
 
@@ -1803,7 +2131,9 @@
           customPinMarker = new google.maps.Marker({
             position: pos,
             map: gmap,
-            title: isCurrentLocation ? `ตำแหน่งปัจจุบัน (${lat.toFixed(4)}, ${lng.toFixed(4)})` : `พิกัดที่เลือก (${lat.toFixed(4)}, ${lng.toFixed(4)})`,
+            title: isCurrentLocation 
+              ? (isEn ? `Current Location (${lat.toFixed(4)}, ${lng.toFixed(4)})` : `ตำแหน่งปัจจุบัน (${lat.toFixed(4)}, ${lng.toFixed(4)})`)
+              : (isEn ? `Selected Pin (${lat.toFixed(4)}, ${lng.toFixed(4)})` : `พิกัดที่เลือก (${lat.toFixed(4)}, ${lng.toFixed(4)})`),
             animation: isRed ? google.maps.Animation.BOUNCE : null,
             label: {
               text: '📍',
@@ -1821,10 +2151,22 @@
           });
 
           // 4. Automatically open google.maps.InfoWindow displaying exact text:
-          // "พิกัดที่เลือก | Peak Rain: XX mm/hr | Risk: [TIER]"
+          // "[Zone Name/Pin] | Peak Rain: XX mm/hr | Risk: [TIER]"
           const peakRain = (data.peak_rain_mm !== undefined ? data.peak_rain_mm : data.peak_hourly || 0).toFixed(1);
           const cum3hr = (data.cumulative_3hr_mm !== undefined ? data.cumulative_3hr_mm : data.max_3hr_cumulative || 0).toFixed(1);
-          const pinTitle = isCurrentLocation ? "📍 ตำแหน่งปัจจุบัน (Current Location)" : "📍 พิกัดที่เลือก (Drop a Pin)";
+          const pinTitle = isCurrentLocation 
+            ? (isEn ? "📍 Current Location" : "📍 ตำแหน่งปัจจุบัน (Current Location)")
+            : (isEn ? "📍 Dropped Pin" : "📍 พิกัดที่เลือก (Drop a Pin)");
+          const pinHeader = isEn 
+            ? `[Selected Pin] | Peak Rain: ${peakRain} mm/hr | Risk: [${tier}]`
+            : `พิกัดที่เลือก | Peak Rain: ${peakRain} mm/hr | Risk: [${tier}]`;
+          const posLabel = isEn ? "Position:" : "ตำแหน่ง:";
+          const radiusLabel = isEn ? "Impact Radius:" : "รัศมีผลกระทบ:";
+          const kmUnit = isEn ? "km" : "กม.";
+          const cumLabel = isEn ? "Max 3-hr Cum:" : "สะสม 3 ชม. สูงสุด:";
+          const mmUnit = isEn ? "mm" : "มม.";
+          const actionLabel = isEn ? "Action:" : "คำแนะนำ:";
+          const actionVal = isEn ? (data.action_en || data.action_text || data.action_th) : (data.action_th || data.action_text);
 
           const customInfoWindowHtml = `
             <div style="background-color: #0f172a; color: #f8fafc; padding: 12px 14px; border-radius: 12px; font-family: 'Prompt', 'Inter', sans-serif; min-width: 260px; max-width: 320px; box-sizing: border-box;">
@@ -1836,22 +2178,22 @@
               </div>
               <div style="font-size: 12px; line-height: 1.5; color: #cbd5e1; margin-bottom: 8px;">
                 <div style="margin-bottom: 6px; font-weight: 700; color: #38bdf8;">
-                  พิกัดที่เลือก | Peak Rain: ${peakRain} mm/hr | Risk: [${tier}]
+                  ${pinHeader}
                 </div>
                 <div style="display: flex; justify-content: space-between; font-size: 11px; color: #94a3b8;">
-                  <span>ตำแหน่ง:</span>
+                  <span>${posLabel}</span>
                   <strong style="color: #f1f5f9;">${lat.toFixed(4)}, ${lng.toFixed(4)}</strong>
                 </div>
                 <div style="display: flex; justify-content: space-between; font-size: 11px; color: #94a3b8; margin-top: 3px;">
-                  <span>รัศมีผลกระทบ:</span>
-                  <strong style="color: ${cfg.fillColor};">${(cfg.radius / 1000).toFixed(1)} กม.</strong>
+                  <span>${radiusLabel}</span>
+                  <strong style="color: ${cfg.fillColor};">${(cfg.radius / 1000).toFixed(1)} ${kmUnit}</strong>
                 </div>
                 <div style="display: flex; justify-content: space-between; font-size: 11px; color: #94a3b8; margin-top: 3px;">
-                  <span>สะสม 3 ชม. สูงสุด:</span>
-                  <strong style="color: #38bdf8;">${cum3hr} มม.</strong>
+                  <span>${cumLabel}</span>
+                  <strong style="color: #38bdf8;">${cum3hr} ${mmUnit}</strong>
                 </div>
                 <div style="margin-top: 6px; padding-top: 6px; border-top: 1px solid #1e293b; font-size: 11px; color: #cbd5e1; line-height: 1.35;">
-                  <strong style="color: #94a3b8;">คำแนะนำ:</strong> ${data.action_text || data.action_th}
+                  <strong style="color: #94a3b8;">${actionLabel}</strong> ${actionVal}
                 </div>
               </div>
             </div>
@@ -1903,28 +2245,36 @@
           });
           customLeafletMarker = L.marker([lat, lng], { icon: customLeafletIcon }).addTo(map);
 
+          const lPinTitle = isCurrentLocation 
+            ? (isEn ? '📍 Current Location' : '📍 ตำแหน่งปัจจุบัน') 
+            : (isEn ? '📍 Selected Pin' : '📍 พิกัดที่เลือก');
+          const lPinHeader = isEn 
+            ? `[Selected Pin] | Peak Rain: ${(data.peak_rain_mm || data.peak_hourly || 0).toFixed(1)} mm/hr | Risk: [${tier}]`
+            : `พิกัดที่เลือก | Peak Rain: ${(data.peak_rain_mm || data.peak_hourly || 0).toFixed(1)} mm/hr | Risk: [${tier}]`;
+          const lAction = isEn ? (data.action_en || data.action_text || data.action_th) : (data.action_th || data.action_text);
+
           const lPopupHtml = `
             <div class="min-w-[240px] text-slate-100 font-sans">
               <div class="flex items-center justify-between border-b border-slate-700 pb-2 mb-2">
-                <span class="font-bold text-sm text-white">${isCurrentLocation ? '📍 ตำแหน่งปัจจุบัน' : '📍 พิกัดที่เลือก'}</span>
+                <span class="font-bold text-sm text-white">${lPinTitle}</span>
                 <span class="text-[10px] px-2 py-0.5 rounded font-black tracking-wide" style="background-color: ${cfg.fillColor}25; color: ${cfg.fillColor}; border: 1px solid ${cfg.fillColor}60;">
                   ${tier}
                 </span>
               </div>
               <div class="space-y-1.5 text-xs text-slate-300">
                 <div class="font-bold text-sky-400">
-                  พิกัดที่เลือก | Peak Rain: ${(data.peak_rain_mm || data.peak_hourly || 0).toFixed(1)} mm/hr | Risk: [${tier}]
+                  ${lPinHeader}
                 </div>
                 <div class="flex justify-between">
-                  <span class="text-slate-400">ตำแหน่ง:</span>
+                  <span class="text-slate-400">${isEn ? "Coordinates:" : "ตำแหน่ง:"}</span>
                   <strong>${lat.toFixed(4)}, ${lng.toFixed(4)}</strong>
                 </div>
                 <div class="flex justify-between">
-                  <span class="text-slate-400">รัศมีผลกระทบ:</span>
-                  <strong style="color: ${cfg.fillColor};">${(rad / 1000).toFixed(1)} กม.</strong>
+                  <span class="text-slate-400">${isEn ? "Impact Radius:" : "รัศมีผลกระทบ:"}</span>
+                  <strong style="color: ${cfg.fillColor};">${(rad / 1000).toFixed(1)} ${isEn ? "km" : "กม."}</strong>
                 </div>
                 <div class="pt-1.5 border-t border-slate-800 text-[11px] text-slate-300">
-                  <span class="text-slate-400 font-medium">คำแนะนำ:</span> ${data.action_text || data.action_th}
+                  <span class="text-slate-400 font-medium">${isEn ? "Action:" : "คำแนะนำ:"}</span> ${lAction}
                 </div>
               </div>
             </div>
@@ -1940,7 +2290,7 @@
 
       } catch (err) {
         console.error("Custom pin analysis error:", err);
-        if (bannerTitle) bannerTitle.textContent = "ไม่สามารถเชื่อมต่อระบบวิเคราะห์พิกัดได้";
+        if (bannerTitle) bannerTitle.textContent = isEn ? "Unable to connect to location analysis service" : "ไม่สามารถเชื่อมต่อระบบวิเคราะห์พิกัดได้";
       } finally {
         if (refreshIcon) refreshIcon.classList.remove('animate-spin');
       }
@@ -1950,19 +2300,20 @@
     function useCurrentLocation() {
       const btn = document.getElementById('btn-use-location');
       const origHtml = btn ? btn.innerHTML : '';
+      const isEn = (currentLang === 'en');
 
       if (!navigator.geolocation) {
-        alert("เบราว์เซอร์ของคุณไม่รองรับ Geolocation API");
+        alert(isEn ? "Your browser does not support Geolocation API" : "เบราว์เซอร์ของคุณไม่รองรับ Geolocation API");
         return;
       }
 
       if (btn) {
-        btn.innerHTML = `<span class="animate-spin inline-block">⏳</span> <span>กำลังระบุพิกัด...</span>`;
+        btn.innerHTML = `<span class="animate-spin inline-block">⏳</span> <span>${isEn ? "Locating..." : "กำลังระบุพิกัด..."}</span>`;
         btn.disabled = true;
       }
 
       const bannerTitle = document.getElementById('banner-title');
-      if (bannerTitle) bannerTitle.textContent = "กำลังค้นหาตำแหน่ง GPS ปัจจุบันของคุณ...";
+      if (bannerTitle) bannerTitle.textContent = isEn ? "Searching for your current GPS location..." : "กำลังค้นหาตำแหน่ง GPS ปัจจุบันของคุณ...";
 
       navigator.geolocation.getCurrentPosition(
         async (position) => {
@@ -1992,7 +2343,9 @@
           // Sensible Bangkok center fallback (Siam / Pathum Wan) if GPS is denied in headless/virtual environments
           const fallbackLat = 13.7460;
           const fallbackLng = 100.5340;
-          if (bannerTitle) bannerTitle.textContent = "ไม่พบสัญญาณ GPS จำลองตำแหน่งใจกลาง กทม. (สยาม / ราชประสงค์)...";
+          if (bannerTitle) bannerTitle.textContent = isEn 
+            ? "GPS signal unavailable. Simulating central Bangkok (Siam / Ratchaprasong)..." 
+            : "ไม่พบสัญญาณ GPS จำลองตำแหน่งใจกลาง กทม. (สยาม / ราชประสงค์)...";
           if (currentMapProvider === 'google' && gmap) {
             gmap.panTo({ lat: fallbackLat - 0.012, lng: fallbackLng });
             gmap.setZoom(13);
@@ -2018,8 +2371,12 @@
       zoneCircles = {};
       zoneMarkers = {};
 
+      const isEn = (currentLang === 'en');
+
       zones.forEach((zone, idx) => {
         const isSelected = (zone.id === selectedLocationId);
+        const zoneName = isEn ? (zone.name_en || zone.name_th) : zone.name_th;
+        const actionText = isEn ? (zone.action_en || zone.action_text || zone.action_th) : (zone.action_th || zone.action_text);
 
         const circle = L.circle([zone.lat, zone.lon], {
           color: zone.risk_color,
@@ -2052,30 +2409,30 @@
         const popupHtml = `
           <div class="min-w-[240px] text-slate-100 font-sans">
             <div class="flex items-center justify-between border-b border-slate-700 pb-2 mb-2">
-              <span class="font-bold text-sm text-white">${zone.name_th}</span>
+              <span class="font-bold text-sm text-white">${zoneName}</span>
               <span class="text-[10px] px-2 py-0.5 rounded font-black tracking-wide" style="background-color: ${zone.risk_color}25; color: ${zone.risk_color}; border: 1px solid ${zone.risk_color}60;">
                 ${zone.risk_tier}
               </span>
             </div>
             <div class="space-y-1.5 text-xs text-slate-300">
               <div class="flex justify-between items-center">
-                <span class="text-slate-400">ฝนตกสูงสุด:</span>
-                <strong class="text-white text-sm">${(zone.peak_rain_mm || zone.peak_6h_hourly).toFixed(1)} มม./ชม.</strong>
+                <span class="text-slate-400">${isEn ? "Peak Rain:" : "ฝนตกสูงสุด:"}</span>
+                <strong class="text-white text-sm">${(zone.peak_rain_mm || zone.peak_6h_hourly).toFixed(1)} ${isEn ? "mm/hr" : "มม./ชม."}</strong>
               </div>
               <div class="flex justify-between items-center">
-                <span class="text-slate-400">รัศมีผลกระทบ:</span>
-                <strong style="color: ${zone.risk_color};">${(zone.radius_meters / 1000).toFixed(1)} กม.</strong>
+                <span class="text-slate-400">${isEn ? "Impact Radius:" : "รัศมีผลกระทบ:"}</span>
+                <strong style="color: ${zone.risk_color};">${(zone.radius_meters / 1000).toFixed(1)} ${isEn ? "km" : "กม."}</strong>
               </div>
               <div class="flex justify-between items-center">
-                <span class="text-slate-400">สะสม 3 ชม. สูงสุด:</span>
-                <strong class="text-cyan-400 font-medium">${(zone.cumulative_3hr_mm || zone.max_3hr_cumulative).toFixed(1)} มม.</strong>
+                <span class="text-slate-400">${isEn ? "Max 3-hr Cum:" : "สะสม 3 ชม. สูงสุด:"}</span>
+                <strong class="text-cyan-400 font-medium">${(zone.cumulative_3hr_mm || zone.max_3hr_cumulative).toFixed(1)} ${isEn ? "mm" : "มม."}</strong>
               </div>
               <div class="pt-1.5 border-t border-slate-800 text-[11px] text-slate-300 leading-snug">
-                <span class="text-slate-400 font-medium">คำแนะนำ:</span> ${zone.action_text || zone.action_th}
+                <span class="text-slate-400 font-medium">${isEn ? "Action:" : "คำแนะนำ:"}</span> ${actionText}
               </div>
             </div>
             <button onclick="selectLocation('${zone.id}', false)" class="mt-2.5 w-full py-1.5 text-center text-xs font-semibold rounded-lg bg-blue-600 hover:bg-blue-500 text-white transition shadow-sm">
-              📊 แสดงกราฟและข้อมูลโซนนี้
+              ${isEn ? "📊 View 24h Forecast" : "📊 แสดงกราฟและข้อมูลโซนนี้"}
             </button>
           </div>
         `;
@@ -2186,18 +2543,29 @@
       const desc = document.getElementById('sim-scenario-desc');
       banner.classList.remove('hidden');
 
-      const scenarioNames = {
+      const isEn = (currentLang === 'en');
+      const scenarioNamesTh = {
         'normal': '🟢 จำลองสภาพปกติ (ฝนเบาบาง < 10 มม.)',
         'watch': '🟡 จำลองฝนปานกลาง 22 มม. (เฝ้าระวังน้ำขัง)',
         'heavy': '🟠 จำลองฝนตกหนัก 45 มม. (แจ้งเตือนส้ม ใกล้เต็มท่อ)',
         'extreme': '🔴 จำลองพายุวิกฤต 75 มม. (วิกฤตแดง เกินท่อ กทม.)',
         'cumulative_red': '🌊 จำลองฝนแช่สะสม 3 ชม. > 80 มม. (วิกฤตแดง)'
       };
-      desc.textContent = `🧪 โหมดจำลอง: ${scenarioNames[scenarioId] || scenarioId}`;
+      const scenarioNamesEn = {
+        'normal': '🟢 Normal Simulation (Rain < 10 mm)',
+        'watch': '🟡 Watch Simulation (Rain 22 mm, Ponding 5-10 cm)',
+        'heavy': '🟠 Warning Simulation (Rain 45 mm, Near 60mm limit)',
+        'extreme': '🔴 Extreme Storm Simulation (Rain 75 mm, Exceeds capacity)',
+        'cumulative_red': '🌊 3-Hr Cumulative Storm Simulation (> 80 mm Critical)'
+      };
+      const names = isEn ? scenarioNamesEn : scenarioNamesTh;
+      desc.textContent = isEn 
+        ? `🧪 Simulation Mode: ${names[scenarioId] || scenarioId}`
+        : `🧪 โหมดจำลอง: ${names[scenarioId] || scenarioId}`;
 
       const liveInd = document.getElementById('live-indicator');
       const liveText = document.getElementById('live-status-text');
-      liveText.textContent = 'โหมดจำลองสถานการณ์';
+      liveText.textContent = isEn ? 'Simulation Mode Active' : 'โหมดจำลองสถานการณ์';
       liveInd.className = 'flex items-center space-x-2 px-3 py-1.5 rounded-full bg-purple-950/60 border border-purple-500/40 text-purple-300';
 
       // Redraw both Google Maps and Leaflet circles dynamically
@@ -2217,9 +2585,10 @@
 
       document.getElementById('sim-status-banner').classList.add('hidden');
 
+      const isEn = (currentLang === 'en');
       const liveInd = document.getElementById('live-indicator');
       const liveText = document.getElementById('live-status-text');
-      liveText.textContent = 'ข้อมูลสด Open-Meteo';
+      liveText.textContent = isEn ? 'Live Open-Meteo' : 'ข้อมูลสด Open-Meteo';
       liveInd.className = 'flex items-center space-x-2 px-3 py-1.5 rounded-full bg-slate-800 border border-slate-700 text-slate-300';
 
       // Redraw maps with live Open-Meteo data
@@ -2256,13 +2625,21 @@
 
     // Init on DOM ready
     document.addEventListener('DOMContentLoaded', () => {
-      initChart();
-      initGMap();
-
       const params = new URLSearchParams(window.location.search);
       const locParam = params.get('location');
       const simParam = params.get('scenario');
       const providerParam = params.get('provider');
+      const langParam = params.get('lang');
+
+      if (langParam === 'en' || langParam === 'th') {
+        currentLang = langParam;
+      }
+
+      // Initialize language UI
+      setLanguage(currentLang, false);
+
+      initChart();
+      initGMap();
 
       if (providerParam === 'leaflet') {
         setMapProvider('leaflet');

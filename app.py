@@ -261,11 +261,14 @@ def api_check_location():
     Dynamic Coordinate API Endpoint (Drop a Pin):
     Accepts lat and lon query parameters, fetches Open-Meteo real-time 24h forecast,
     runs BMA Drainage flood risk evaluation, and returns location-specific risk metrics.
-    Supports optional ?scenario= override for Simulation Mode testing.
+    Supports optional ?scenario= override for Simulation Mode testing and ?lang= (th/en).
     """
     lat_str = request.args.get("lat", None)
     lon_str = request.args.get("lon", None)
     scenario_id = request.args.get("scenario", None)
+    lang = request.args.get("lang", "th").lower()
+    if lang not in ["th", "en"]:
+        lang = "th"
 
     if lat_str is None or lon_str is None:
         return jsonify({
@@ -298,7 +301,7 @@ def api_check_location():
         precip_slice = [round(val, 1) for val in base_precip]
         times_slice = [(now_bkk + timedelta(hours=i)).strftime("%Y-%m-%dT%H:00") for i in range(24)]
 
-        analysis = analyze_series(precip_slice, times_slice, window_hours=24)
+        analysis = analyze_series(precip_slice, times_slice, window_hours=24, lang=lang)
         risk_6h = analysis["next_6h_risk"]
         tier_code = risk_6h["code"]
         rad_cfg = RADIUS_TIER_CONFIG[tier_code]
@@ -365,7 +368,7 @@ def api_check_location():
             humidity_series.append(70)
             wcode_series.append(1)
 
-        analysis = analyze_series(precip_slice, times_slice, window_hours=24)
+        analysis = analyze_series(precip_slice, times_slice, window_hours=24, lang=lang)
         risk_6h = analysis["next_6h_risk"]
         tier_code = risk_6h["code"]
         rad_cfg = RADIUS_TIER_CONFIG[tier_code]
@@ -378,21 +381,25 @@ def api_check_location():
         "precipitation_probability": precip_prob_series[0] if precip_prob_series else 0,
         "precipitation_current": precip_slice[0] if precip_slice else 0.0,
         "weathercode": wcode_series[0] if wcode_series else 0,
+        "weather_desc": w_info["desc_en"] if lang == "en" else w_info["desc_th"],
         "weather_desc_th": w_info["desc_th"],
         "weather_desc_en": w_info["desc_en"],
         "weather_icon": w_info["icon"],
         "observed_at": times_slice[0] if times_slice else now_str,
-        "observed_at_formatted": format_time_label(times_slice[0] if times_slice else now_str)
+        "observed_at_formatted": format_time_label(times_slice[0] if times_slice else now_str, lang=lang)
     }
 
     custom_location = {
         "id": "custom_pin",
+        "name": f"Selected Coordinates ({lat:.4f}, {lon:.4f})" if lang == "en" else f"พิกัดที่เลือก ({lat:.4f}, {lon:.4f})",
         "name_th": f"พิกัดที่เลือก ({lat:.4f}, {lon:.4f})",
         "name_en": f"Selected Coordinates ({lat:.4f}, {lon:.4f})",
         "lat": lat,
         "lon": lon,
-        "hotspots": f"พิกัด ละติจูด {lat:.4f}, ลองจิจูด {lon:.4f} (วิเคราะห์สภาพอากาศเฉพาะจุด)",
-        "drainage_basin": "การประเมินอิงข้อมูลพยากรณ์ Open-Meteo ร่วมกับเกณฑ์ระบายน้ำ กทม."
+        "hotspots": f"Coordinates Latitude {lat:.4f}, Longitude {lon:.4f} (localized weather analysis)" if lang == "en" else f"พิกัด ละติจูด {lat:.4f}, ลองจิจูด {lon:.4f} (วิเคราะห์สภาพอากาศเฉพาะจุด)",
+        "hotspots_en": f"Coordinates Latitude {lat:.4f}, Longitude {lon:.4f} (localized weather analysis)",
+        "drainage_basin": "Assessment based on Open-Meteo forecast and BMA drainage capacity standards." if lang == "en" else "การประเมินอิงข้อมูลพยากรณ์ Open-Meteo ร่วมกับเกณฑ์ระบายน้ำ กทม.",
+        "drainage_basin_en": "Assessment based on Open-Meteo forecast and BMA drainage capacity standards."
     }
 
     # Full 24-hour hourly forecast array with time, precipitation, cumulative_3hr_mm, risk_tier
@@ -400,7 +407,7 @@ def api_check_location():
     for i in range(len(times_slice)):
         hourly_forecast.append({
             "time": times_slice[i],
-            "time_formatted": format_time_label(times_slice[i]),
+            "time_formatted": format_time_label(times_slice[i], lang=lang),
             "precipitation": precip_slice[i],
             "cumulative_3hr_mm": analysis["rolling_3hr"][i],
             "risk_tier": analysis["hourly_breakdown"][i]["risk_code"]
@@ -414,20 +421,28 @@ def api_check_location():
         "cumulative_3hr_mm": analysis["max_3hr_cumulative"],
         "total_rain_24h": analysis["total_rain_24h"],
         "risk_tier": tier_code,
-        "action_text": risk_6h["action_th"]
+        "risk_title": risk_6h["title"],
+        "risk_title_th": risk_6h["title_th"],
+        "risk_title_en": risk_6h["title_en"],
+        "action_text": risk_6h["action_text"],
+        "action_th": risk_6h["action_th"],
+        "action_en": risk_6h["action_en"]
     }
 
-    # AI Flood Analysis Insight (Google Gemini)
+    # AI Flood Analysis Insight (Google Gemini) in requested language
+    ai_loc_name = custom_location["name_en"] if lang == "en" else custom_location["name_th"]
     ai_insight = generate_flood_insight(
-        custom_location["name_th"],
+        ai_loc_name,
         analysis["peak_hourly"],
         analysis["max_3hr_cumulative"],
-        tier_code
+        tier_code,
+        lang=lang
     )
 
     return jsonify({
         "success": True,
         "is_simulation": is_simulation,
+        "lang": lang,
         "ai_insight": ai_insight,
         "lat": lat,
         "lon": lon,
@@ -444,10 +459,13 @@ def api_check_location():
         "risk_tier": tier_code,
         "risk_level": risk_6h["level"],
         "risk_color": rad_cfg["color"],
+        "risk_title": risk_6h["title"],
         "risk_title_th": risk_6h["title_th"],
+        "risk_title_en": risk_6h["title_en"],
         "status_name": risk_6h["status_name"],
-        "action_text": risk_6h["action_th"],
+        "action_text": risk_6h["action_text"],
         "action_th": risk_6h["action_th"],
+        "action_en": risk_6h["action_en"],
         "banner_message": analysis["banner_message"],
         "radius_meters": rad_cfg["radius_meters"],
         "fill_opacity": rad_cfg["fill_opacity"],
@@ -457,7 +475,7 @@ def api_check_location():
         "analysis": analysis,
         "forecast_series": {
             "times": times_slice,
-            "times_formatted": [format_time_label(t) for t in times_slice],
+            "times_formatted": [format_time_label(t, lang=lang) for t in times_slice],
             "precipitation": precip_slice,
             "precipitation_probability": precip_prob_series,
             "temperature": temp_series,
@@ -543,8 +561,12 @@ def api_all_zones_status():
     Multi-Zone API Aggregation:
     Evaluates 6-hour and 24-hour flood risk for ALL 6 monitored Bangkok zones at once.
     Supports both real-time Open-Meteo data and Simulation Mode overrides (?scenario=heavy).
+    Accepts ?lang= (th/en) for bilingual names and action texts.
     """
     scenario_id = request.args.get("scenario", None)
+    lang = request.args.get("lang", "th").lower()
+    if lang not in ["th", "en"]:
+        lang = "th"
     is_simulation = bool(scenario_id and scenario_id in SIMULATION_SCENARIOS)
 
     now_bkk = datetime.now(BKK_TZ)
@@ -561,7 +583,7 @@ def api_all_zones_status():
             factor = ZONE_SIMULATION_FACTORS.get(loc["id"], 1.0)
             # Apply slight geographic variation (±15%) so map displays realistic mix of tiers
             zone_precip = [round(val * factor, 1) for val in base_precip]
-            analysis = analyze_series(zone_precip, times_slice, window_hours=24)
+            analysis = analyze_series(zone_precip, times_slice, window_hours=24, lang=lang)
 
             # Evaluate next 6h risk for radius map
             risk_6h = analysis["next_6h_risk"]
@@ -570,13 +592,15 @@ def api_all_zones_status():
 
             zones_result.append({
                 "id": loc["id"],
-                "name": loc["name_th"],
+                "name": loc["name_en"] if lang == "en" else loc["name_th"],
                 "name_th": loc["name_th"],
                 "name_en": loc["name_en"],
                 "lat": loc["lat"],
                 "lon": loc["lon"],
-                "hotspots": loc["hotspots"],
-                "drainage_basin": loc["drainage_basin"],
+                "hotspots": loc.get("hotspots_en", loc["hotspots"]) if lang == "en" else loc["hotspots"],
+                "hotspots_en": loc.get("hotspots_en", loc["hotspots"]),
+                "drainage_basin": loc.get("drainage_basin_en", loc["drainage_basin"]) if lang == "en" else loc["drainage_basin"],
+                "drainage_basin_en": loc.get("drainage_basin_en", loc["drainage_basin"]),
                 "peak_rain_mm": analysis["peak_hourly"],
                 "peak_hourly": analysis["peak_hourly"],
                 "peak_time_formatted": analysis["peak_time_formatted"],
@@ -588,10 +612,13 @@ def api_all_zones_status():
                 "risk_tier": tier_code,
                 "risk_level": risk_6h["level"],
                 "risk_color": rad_cfg["color"],
+                "risk_title": risk_6h["title"],
                 "risk_title_th": risk_6h["title_th"],
+                "risk_title_en": risk_6h["title_en"],
                 "status_name": risk_6h["status_name"],
-                "action_text": risk_6h["action_th"],
+                "action_text": risk_6h["action_text"],
                 "action_th": risk_6h["action_th"],
+                "action_en": risk_6h["action_en"],
                 "banner_message": analysis["banner_message"],
                 "radius_meters": rad_cfg["radius_meters"],
                 "fill_opacity": rad_cfg["fill_opacity"],
@@ -627,20 +654,22 @@ def api_all_zones_status():
                 z_precip.append(0.0)
                 z_times.append((now_bkk + timedelta(hours=len(z_times))).strftime("%Y-%m-%dT%H:00"))
 
-            analysis = analyze_series(z_precip, z_times, window_hours=24)
+            analysis = analyze_series(z_precip, z_times, window_hours=24, lang=lang)
             risk_6h = analysis["next_6h_risk"]
             tier_code = risk_6h["code"]
             rad_cfg = RADIUS_TIER_CONFIG[tier_code]
 
             zones_result.append({
                 "id": loc["id"],
-                "name": loc["name_th"],
+                "name": loc["name_en"] if lang == "en" else loc["name_th"],
                 "name_th": loc["name_th"],
                 "name_en": loc["name_en"],
                 "lat": loc["lat"],
                 "lon": loc["lon"],
-                "hotspots": loc["hotspots"],
-                "drainage_basin": loc["drainage_basin"],
+                "hotspots": loc.get("hotspots_en", loc["hotspots"]) if lang == "en" else loc["hotspots"],
+                "hotspots_en": loc.get("hotspots_en", loc["hotspots"]),
+                "drainage_basin": loc.get("drainage_basin_en", loc["drainage_basin"]) if lang == "en" else loc["drainage_basin"],
+                "drainage_basin_en": loc.get("drainage_basin_en", loc["drainage_basin"]),
                 "peak_rain_mm": analysis["peak_hourly"],
                 "peak_hourly": analysis["peak_hourly"],
                 "peak_time_formatted": analysis["peak_time_formatted"],
@@ -652,10 +681,13 @@ def api_all_zones_status():
                 "risk_tier": tier_code,
                 "risk_level": risk_6h["level"],
                 "risk_color": rad_cfg["color"],
+                "risk_title": risk_6h["title"],
                 "risk_title_th": risk_6h["title_th"],
+                "risk_title_en": risk_6h["title_en"],
                 "status_name": risk_6h["status_name"],
-                "action_text": risk_6h["action_th"],
+                "action_text": risk_6h["action_text"],
                 "action_th": risk_6h["action_th"],
+                "action_en": risk_6h["action_en"],
                 "banner_message": analysis["banner_message"],
                 "radius_meters": rad_cfg["radius_meters"],
                 "fill_opacity": rad_cfg["fill_opacity"],
@@ -676,22 +708,29 @@ def api_all_zones_status():
     elif watch_count > 0:
         max_tier = "YELLOW"
 
-    # AI Flood Analysis Insight (Google Gemini) for Bangkok all-zones overview
+    # AI Flood Analysis Insight (Google Gemini) for Bangkok all-zones overview in requested language
     top_zone = max(zones_result, key=lambda z: z["peak_hourly"]) if zones_result else None
     if top_zone:
+        if lang == "en":
+            ai_overview_name = f"Bangkok 6 Zones Overview (Highest Risk: {top_zone['name_en']})"
+        else:
+            ai_overview_name = f"ภาพรวม 6 โซน กทม. (จุดเสี่ยงสูงสุด: {top_zone['name_th']})"
         ai_insight = generate_flood_insight(
-            f"ภาพรวม 6 โซน กทม. (จุดเสี่ยงสูงสุด: {top_zone['name_th']})",
+            ai_overview_name,
             top_zone["peak_hourly"],
             top_zone["cumulative_3hr_mm"],
-            top_zone["risk_tier"]
+            top_zone["risk_tier"],
+            lang=lang
         )
     else:
-        ai_insight = generate_flood_insight("ภาพรวมกรุงเทพมหานคร", 0.0, 0.0, max_tier)
+        ai_overview_name = "Bangkok Metropolitan Area Overview" if lang == "en" else "ภาพรวมกรุงเทพมหานคร"
+        ai_insight = generate_flood_insight(ai_overview_name, 0.0, 0.0, max_tier, lang=lang)
 
     return jsonify({
         "success": True,
         "is_simulation": is_simulation,
         "scenario": scenario_id if is_simulation else None,
+        "lang": lang,
         "ai_insight": ai_insight,
         "zones": zones_result,
         "summary": {
@@ -721,8 +760,13 @@ def api_forecast():
     Fetches real-time forecast and analyzes flood risk for the specified Bangkok zone.
     Query params:
         - location_id: e.g. 'chatuchak', 'dindaeng', etc.
+        - lang: 'th' or 'en' (default 'th')
     """
     location_id = request.args.get("location_id", "chatuchak")
+    lang = request.args.get("lang", "th").lower()
+    if lang not in ["th", "en"]:
+        lang = "th"
+
     location = find_location(location_id)
 
     raw_data = fetch_open_meteo_forecast(location["lat"], location["lon"])
@@ -767,7 +811,7 @@ def api_forecast():
         wcode_slice.append(1)
 
     # Run BMA Flood Risk Engine Analysis
-    analysis = analyze_series(precip_slice, times_slice, window_hours=24)
+    analysis = analyze_series(precip_slice, times_slice, window_hours=24, lang=lang)
 
     # Current weather summary
     curr_wcode = wcode_slice[0] if wcode_slice else 0
@@ -779,30 +823,41 @@ def api_forecast():
         "precipitation_probability": precip_prob_slice[0] if precip_prob_slice else 0,
         "precipitation_current": precip_slice[0] if precip_slice else 0.0,
         "weathercode": curr_wcode,
+        "weather_desc": w_info["desc_en"] if lang == "en" else w_info["desc_th"],
         "weather_desc_th": w_info["desc_th"],
         "weather_desc_en": w_info["desc_en"],
         "weather_icon": w_info["icon"],
         "observed_at": times_slice[0] if times_slice else now_str,
-        "observed_at_formatted": format_time_label(times_slice[0] if times_slice else now_str)
+        "observed_at_formatted": format_time_label(times_slice[0] if times_slice else now_str, lang=lang)
     }
 
+    loc_display_name = location["name_en"] if lang == "en" else location["name_th"]
     ai_insight = generate_flood_insight(
-        location["name_th"],
+        loc_display_name,
         analysis["peak_hourly"],
         analysis["max_3hr_cumulative"],
-        analysis["next_6h_risk"]["code"]
+        analysis["next_6h_risk"]["code"],
+        lang=lang
     )
 
     return jsonify({
         "success": True,
         "is_simulation": False,
+        "lang": lang,
         "ai_insight": ai_insight,
         "location": location,
         "current": current_summary,
         "analysis": analysis,
+        "action_text": analysis["next_6h_risk"]["action_text"],
+        "action_th": analysis["next_6h_risk"]["action_th"],
+        "action_en": analysis["next_6h_risk"]["action_en"],
+        "status_name": analysis["next_6h_risk"]["status_name"],
+        "risk_title": analysis["next_6h_risk"]["title"],
+        "risk_tier": analysis["next_6h_risk"]["code"],
+        "banner_message": analysis["banner_message"],
         "forecast_series": {
             "times": times_slice,
-            "times_formatted": [format_time_label(t) for t in times_slice],
+            "times_formatted": [format_time_label(t, lang=lang) for t in times_slice],
             "precipitation": precip_slice,
             "precipitation_probability": precip_prob_slice,
             "temperature": temp_slice,
@@ -822,16 +877,22 @@ def api_simulate():
     Query / body params:
         - scenario: 'normal', 'watch', 'heavy', 'extreme', 'cumulative_red'
         - location_id: e.g. 'chatuchak'
+        - lang: 'th' or 'en' (default 'th')
     """
     if request.method == "POST":
         data = request.get_json(silent=True) or {}
         scenario_id = data.get("scenario", "heavy")
         location_id = data.get("location_id", "chatuchak")
         custom_precip = data.get("custom_precipitation", None)
+        lang = data.get("lang", "th").lower()
     else:
         scenario_id = request.args.get("scenario", "heavy")
         location_id = request.args.get("location_id", "chatuchak")
         custom_precip = None
+        lang = request.args.get("lang", "th").lower()
+
+    if lang not in ["th", "en"]:
+        lang = "th"
 
     location = find_location(location_id)
     scenario = SIMULATION_SCENARIOS.get(scenario_id, SIMULATION_SCENARIOS["heavy"])
@@ -846,7 +907,7 @@ def api_simulate():
     times_slice = [(now_bkk + timedelta(hours=i)).strftime("%Y-%m-%dT%H:00") for i in range(24)]
 
     # Run BMA Flood Risk Engine Analysis
-    analysis = analyze_series(precip_slice, times_slice, window_hours=24)
+    analysis = analyze_series(precip_slice, times_slice, window_hours=24, lang=lang)
 
     # Synthesize realistic weather metrics matching the rainfall intensity
     peak_hourly = analysis["peak_hourly"]
@@ -881,11 +942,12 @@ def api_simulate():
         "precipitation_probability": precip_prob,
         "precipitation_current": precip_slice[0],
         "weathercode": wcode,
+        "weather_desc": w_info["desc_en"] if lang == "en" else w_info["desc_th"],
         "weather_desc_th": w_info["desc_th"],
         "weather_desc_en": w_info["desc_en"],
         "weather_icon": w_info["icon"],
         "observed_at": times_slice[0],
-        "observed_at_formatted": format_time_label(times_slice[0])
+        "observed_at_formatted": format_time_label(times_slice[0], lang=lang)
     }
 
     # Generate temperature & humidity curves for chart
@@ -893,24 +955,35 @@ def api_simulate():
     humidity_series = [min(99, int(humidity + (p * 0.4))) for p in precip_slice]
     precip_prob_series = [min(100, int(30 + p * 1.5)) if p > 0 else 15 for p in precip_slice]
 
+    loc_display_name = location["name_en"] if lang == "en" else location["name_th"]
+    scen_name = scenario.get("name_en", scenario_id) if lang == "en" else scenario.get("name_th", scenario_id)
     ai_insight = generate_flood_insight(
-        f"{location['name_th']} ({scenario.get('name_th', scenario_id)})",
+        f"{loc_display_name} ({scen_name})",
         analysis["peak_hourly"],
         analysis["max_3hr_cumulative"],
-        analysis["next_6h_risk"]["code"]
+        analysis["next_6h_risk"]["code"],
+        lang=lang
     )
 
     return jsonify({
         "success": True,
         "is_simulation": True,
+        "lang": lang,
         "ai_insight": ai_insight,
         "scenario": scenario,
         "location": location,
         "current": current_summary,
         "analysis": analysis,
+        "action_text": analysis["next_6h_risk"]["action_text"],
+        "action_th": analysis["next_6h_risk"]["action_th"],
+        "action_en": analysis["next_6h_risk"]["action_en"],
+        "status_name": analysis["next_6h_risk"]["status_name"],
+        "risk_title": analysis["next_6h_risk"]["title"],
+        "risk_tier": analysis["next_6h_risk"]["code"],
+        "banner_message": analysis["banner_message"],
         "forecast_series": {
             "times": times_slice,
-            "times_formatted": [format_time_label(t) for t in times_slice],
+            "times_formatted": [format_time_label(t, lang=lang) for t in times_slice],
             "precipitation": precip_slice,
             "precipitation_probability": precip_prob_series,
             "temperature": temp_series,
